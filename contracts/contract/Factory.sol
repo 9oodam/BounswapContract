@@ -2,10 +2,9 @@
 pragma solidity ^0.8.20;
 
 import './Pair.sol';
-
 import '../utils/Data.sol';
 
-contract Factory is Pair {
+contract Factory {
     address public feeTo;
     address public feeToSetter;
 
@@ -19,24 +18,21 @@ contract Factory is Pair {
         feeToSetter = _feeToSetter;
 
         // 토큰 4개 발행 (WBND, ETH, USDT, BNB)
-        WBNC wbnc = new WBNC('Wrapped Bounce Coin', 'WBNC', 10000, "");
-		Token eth = new Token('ethereum', 'ETH', 10000, "");
-		Token usdt = new Token('Tether', 'USDT', 10000, "");
-		Token bnb = new Token ('Binance Coin', 'BNB', 10000, "");
+        // WBNC wbnc = new WBNC('Wrapped Bounce Coin', 'WBNC', 10000, "");
+		// Token eth = new Token('ethereum', 'ETH', 10000, "");
+		// Token usdt = new Token('Tether', 'USDT', 10000, "");
+		// Token bnb = new Token ('Binance Coin', 'BNB', 10000, "");
 
-        Data.allTokens.push(address(wbnc), address(eth), address(usdt), address(bnb));
+        // Data.allTokens.push(address(wbnc), address(eth), address(usdt), address(bnb));
     }
-
-    // 프론트에서 msg 전달 받으면 실행?
-    function initialPlay() public {
-
-    }
-
-
 
     // function allPairsLength() external view returns (uint) {
     //     return allPairs.length;
     // }
+
+    function initialPlay(bytes[] memory) public returns () {
+        // 1) 만약 2개 토큰 중 bnc가 포함이면 Wrapping.
+    }
 
     // pair 처음 생성할 때 실행
     function createPairAddress(address tokenA, address tokenB) internal returns (address pair) {

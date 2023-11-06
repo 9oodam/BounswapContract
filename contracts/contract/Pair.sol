@@ -41,18 +41,8 @@ contract BounswapPair is IBounswapPair, Token {
         unlocked = 1;
     }
 
-    // 총 발생한 fee
-    mapping (address validator => UnclaimedFeeData) userlUnclaimedFees;
-
-    struct UnclaimedFeeData {
-        uint token0FeeAmount;
-        uint token1FeeAmount;
-    }
-
     mapping (uint blockStamp => uint volume) public volumePerTransaction0; // token0의 volume
     mapping (uint blockStamp => uint volume) public volumePerTransaction1;
-
-
 
 
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
@@ -237,16 +227,10 @@ contract BounswapPair is IBounswapPair, Token {
     function beforeSwapInput(address tokenAddress, uint inputAmount, uint minToken) public returns (uint) {
 
         (uint amount0Out, amount1Out) = tokenAddress == token0 ? (amount0Out = inputAmount, amount1Out = 0);
-
-
-
-        swap(amount0Out, amount1Out, msg.sender, minToken);
     }
 
     // output 값을 넣어서 input 값을 받고 싶을 때 == 지불하고 싶은 값이 0.5% 이상으로 올라가면 실행 안함
     function beforeSwapOutput(uint outputAmount) public returns (uint) {
-
-        swap()
     }
 
     function swap(uint amount0Out, uint amount1Out, address to) external lock {
@@ -308,27 +292,10 @@ contract BounswapPair is IBounswapPair, Token {
         volumePerTransaction1[block.timestamp] += amount1Out;
     }
 
-    // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
-        return userlUnclaimedFees[msg.sender];
-    }
-
-    // 미청구 수수료 청구하는 함수
-    function claimFee() public returns (bool) {
-        Token(token0).transfer(msg.sender, userlUnclaimedFees[msg.sender].token0Amount);
-        Token(token1).transfer(msg.sender, userlUnclaimedFees[msg.sender].token1Amount);
-        userlUnclaimedFees[msg.sender].token0Amount = 0;
-        userlUnclaimedFees[msg.sender].token1Amount = 0;
-        return true;
-    }
 
 
-    // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
-    function getUserLiquidity(address validator) public view returns (Data memory) {
-        // lptoken 개수로 token0, token1 예치량 역계산
 
-        return ();
-    }
+
 
     // 토큰 당 totalVolume 계산
     function getTotalVolume(address tokenAddress, uint blockStampNow, uint blockStamp24hBefore) public returns (uint) {
