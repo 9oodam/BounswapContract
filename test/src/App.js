@@ -32,23 +32,13 @@ const App = () => {
       const contract = new web3.eth.Contract(testAbi, '0x6a20e510A6dEa615622DD3B768F9Dd4c8c8484b9', {data : ""});
       setContract(contract);
 
-      // const info = [
-      //   {
-      //     name : 'test2PlayFirst',
-      //     args : ["Hello, World!"]
-      //   },
-      //   {
-      //     name : 'test2PlaySecond',
-      //     args : [12345]
-      //   }
-      // ]
       const res = web3.eth.abi.encodeParameters(
-        ['string', 'uint256'],
-        ['Hello, World!', '12345'])
+        ['address', 'string', 'uint256'],
+        ['0x...', 'Hello, World!', '12345'])
 
       const info = [
           web3.eth.abi.encodeFunctionCall({
-            name: 'test2PlayFirst',
+            name: 'playFirst',
             type: 'function',
             inputs: [{ type: 'bytes', name: 'data' }],
           }, [res])
