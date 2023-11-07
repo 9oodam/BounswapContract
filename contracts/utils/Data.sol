@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./Pair.sol";
+
 contract Data {
     address[] public allPairs;
     address[] public allTokens;
@@ -9,7 +11,6 @@ contract Data {
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
     constructor() {}
-
 
     // 모든 페어 주소 배열
     function getAllPairAddress() public view returns (address[]) {

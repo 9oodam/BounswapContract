@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./interfaces/IBounswapPair.sol";
-import "./interfaces/IBounswapERC20.sol";
-import "./interfaces/IBounswapFactory.sol";
+import "./interfaces/IERC20.sol";
+import "./interfaces/IFactory.sol";
 
-import "./BounswapERC20.sol";
+import "./Token.sol";
 import "./WBNC.sol";
 
 import "./libraries/Calculate.sol";
@@ -15,7 +14,7 @@ import "./libraries/UQ112x112.sol";
 import "./libraries/SafeMath.sol";
 
 
-contract BounswapPair is IBounswapPair, Token {
+contract Pair is Token {
     using UQ112x112 for uint224;
 
     uint public constant MINIMUM_LIQUIDITY = 10**3;
@@ -33,6 +32,7 @@ contract BounswapPair is IBounswapPair, Token {
     uint public price1CumulativeLast;
     uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
+    // 재진입 공격 방지를 위한 lock 정의
     uint private unlocked = 1;
     modifier lock() {
         require(unlocked == 1, 'UniswapV2: LOCKED');
@@ -40,20 +40,6 @@ contract BounswapPair is IBounswapPair, Token {
         _;
         unlocked = 1;
     }
-
-    // 총 발생한 fee
-    mapping (address validator => UnclaimedFeeData) userlUnclaimedFees;
-
-    struct UnclaimedFeeData {
-        uint token0FeeAmount;
-        uint token1FeeAmount;
-    }
-
-    mapping (uint blockStamp => uint volume) public volumePerTransaction0; // token0의 volume
-    mapping (uint blockStamp => uint volume) public volumePerTransaction1;
-
-
-
 
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
         _reserve0 = reserve0;
@@ -68,14 +54,6 @@ contract BounswapPair is IBounswapPair, Token {
 
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
     event Sync(uint112 reserve0, uint112 reserve1);
 
 
@@ -94,7 +72,7 @@ contract BounswapPair is IBounswapPair, Token {
     }
 
     // update reserves and, on the first call per block, price accumulators
-    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
+    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) internal {
         // require(balance0 <= uint112(-1) && balance1 <= uint112(-1), "UniswapV2: OVERFLOW");
         require(balance0 <= MAX_UINT112 && balance1 <= MAX_UINT112, "UniswapV2: OVERFLOW");
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
@@ -232,123 +210,6 @@ contract BounswapPair is IBounswapPair, Token {
         (uint inputReserve, uint outputReserve) = (outputToken == token0) ? (reserve1, reserve0) : (reserve0, reserve1);
         return Calculate.calInputAmount(outputAmount, inputReserve, outputReserve);
     }
-
-    // input 값을 넣어서 ouput 값을 받고 싶을 때 == 받고 싶은 값이 0.5% 이하로 떨어지면 실행 안함
-    function beforeSwapInput(address tokenAddress, uint inputAmount, uint minToken) public returns (uint) {
-
-        (uint amount0Out, amount1Out) = tokenAddress == token0 ? (amount0Out = inputAmount, amount1Out = 0);
-
-
-
-        swap(amount0Out, amount1Out, msg.sender, minToken);
-    }
-
-    // output 값을 넣어서 input 값을 받고 싶을 때 == 지불하고 싶은 값이 0.5% 이상으로 올라가면 실행 안함
-    function beforeSwapOutput(uint outputAmount) public returns (uint) {
-
-        swap()
-    }
-
-    function swap(uint amount0Out, uint amount1Out, address to) external lock {
-        // output 이 둘 중에 하나는 0 보다 커야함
-        require(amount0Out > 0 || amount1Out > 0, 'INSUFFICIENT_OUTPUT_AMOUNT');
-
-        // BNC <-> WBNC
-        if(msg.value > 0) {
-            WBNC(factory.allTokens[0]).deposit(msg.value);
-        }
-
-
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'INSUFFICIENT_LIQUIDITY');
-
-        uint balance0;
-        uint balance1;
-        { // scope for _token{0,1}, avoids stack too deep errors
-        address _token0 = token0;
-        address _token1 = token1;
-        require(to != _token0 && to != _token1, 'INVALID_TO');
-        if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-        // if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-        balance0 = Token(_token0).balanceOf(address(this));
-        balance1 = Token(_token1).balanceOf(address(this));
-        }
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-        require(amount0In > 0 || amount1In > 0, 'INSUFFICIENT_INPUT_AMOUNT');
-
-        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = SafeMath.sub(SafeMath.mul(balance0, 1000), SafeMath.mul(amount0In, 3));
-        uint balance1Adjusted = SafeMath.sub(SafeMath.mul(balance1, 1000), SafeMath.mul(amount1In, 3));
-        // uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-        // uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        require(SafeMath.mul(balance0Adjusted, balance1Adjusted) >= SafeMath.mul(SafeMath.mul(uint(_reserve0), _reserve1), 1000**2), 'UniswapV2: K');
-        }
-
-        // unclaimed fee 누적시키기
-        for(uint i=0; i<validatorArr.length; i++) {
-            uint userLiquidity = poolDataForValidator[validatorArr[i]].lpToken;
-            uint liquidity = balanceOf(address(this));
-            
-            userlUnclaimedFees[validatorArr[i]].token0Amount += SafeMath.mul(amount0In, 3) * userLiquidity / liquidity;
-            userlUnclaimedFees[validatorArr[i]].token1Amount += SafeMath.mul(amount1In, 3) * userLiquidity / liquidity;
-            // userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
-            // userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
-        }
-
-
-        _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
-
-        // Volume 누적시키기
-        volumePerTransaction0[block.timestamp] = amount0In;
-        volumePerTransaction0[block.timestamp] += amount0Out;
-        volumePerTransaction1[block.timestamp] = amount1In;
-        volumePerTransaction1[block.timestamp] += amount1Out;
-    }
-
-    // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
-        return userlUnclaimedFees[msg.sender];
-    }
-
-    // 미청구 수수료 청구하는 함수
-    function claimFee() public returns (bool) {
-        Token(token0).transfer(msg.sender, userlUnclaimedFees[msg.sender].token0Amount);
-        Token(token1).transfer(msg.sender, userlUnclaimedFees[msg.sender].token1Amount);
-        userlUnclaimedFees[msg.sender].token0Amount = 0;
-        userlUnclaimedFees[msg.sender].token1Amount = 0;
-        return true;
-    }
-
-
-    // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
-    function getUserLiquidity(address validator) public view returns (Data memory) {
-        // lptoken 개수로 token0, token1 예치량 역계산
-
-        return ();
-    }
-
-    // 토큰 당 totalVolume 계산
-    function getTotalVolume(address tokenAddress, uint blockStampNow, uint blockStamp24hBefore) public returns (uint) {
-        require(tokenAddress == token0 || tokenAddress == token1, "Invalid token address");
-        uint totalVolume = 0;
-
-        if (tokenAddress == token0) {
-            for (uint i = blockStamp24hBefore; i <= blockStampNow; i++) {
-                totalVolume += volumePerTransaction0[i];
-            }
-        } else {
-            for (uint i = blockStamp24hBefore; i <= blockStampNow; i++) {
-                totalVolume += volumePerTransaction1[i];
-            }
-        }
-
-        return totalVolume;
-    }
-
-
 
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
