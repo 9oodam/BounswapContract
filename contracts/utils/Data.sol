@@ -10,8 +10,9 @@ contract Data {
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
-    constructor() {
+    constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
         pairParams = new Pair();
+        allTokens.push()
     }
 
 
