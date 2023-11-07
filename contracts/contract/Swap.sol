@@ -213,7 +213,7 @@ contract Swap {
         //         liquidity;
             // userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
             // userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
-        }
+        
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(userAddress, amount0In, amount1In, amount0Out, amount1Out, pairAddress);
@@ -223,6 +223,7 @@ contract Swap {
         volumePerTransaction0[block.timestamp] += amount0Out;
         volumePerTransaction1[block.timestamp] = amount1In;
         volumePerTransaction1[block.timestamp] += amount1Out;
+    }
 
     // 토큰 당 totalVolume 계산
     function getTotalVolume(
