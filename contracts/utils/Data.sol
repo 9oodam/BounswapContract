@@ -10,9 +10,12 @@ contract Data {
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
+    // blockTimeStamp로 blockNumber 찾기
+    mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
+
+
     constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
         pairParams = new Pair();
-        allTokens.push()
     }
 
 
@@ -78,6 +81,13 @@ contract Data {
         } 
         return TokenData(tokenAddress, token.name, token.symbol, token.uri,
             token.totalSupply, totalVolume);
+    }
+
+    // 24시간 전부터 현재까지 발생한 Block number 찾기
+    function getBlockNumber(uint blockStampNow, uint blockStamp24hBefore) public returns (uin32[]) {
+        for(uint i=blockStamp24hBefore; i<=blockStampNow; i++) {
+            if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
+        }
     }
 
 }
