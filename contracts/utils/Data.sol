@@ -12,9 +12,18 @@ contract Data {
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
+    // blockTimeStamp로 blockNumber 찾기
+    mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
+
+    // pool 예치해서 발생한 fee (미청구)
+    mapping (address validator => UnclaimedFeeData) public userUnclaimedFee;
+    struct UnclaimedFeeData {
+        uint256 token0FeeAmount;
+        uint256 token1FeeAmount;
+    }
+
     constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
         pairParams = new Pair();
-        allTokens.push()
     }
 
     // 모든 페어 주소 배열
@@ -52,7 +61,10 @@ contract Data {
         return BounswapPair(pa).getUserLiquidity(msg.sender);
     }
 
-
+    // pool detail page에서 사용자가 아직 미청구한 수수료
+    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
+        return userUnclaimedFee[msg.sender];
+    }
 
 
     // 모든 토큰 주소 배열
@@ -79,6 +91,13 @@ contract Data {
         } 
         return TokenData(tokenAddress, token.name, token.symbol, token.uri,
             token.totalSupply, totalVolume);
+    }
+
+    // 24시간 전부터 현재까지 발생한 Block number 찾기
+    function getBlockNumber(uint blockStampNow, uint blockStamp24hBefore) public returns (uin32[]) {
+        for(uint i=blockStamp24hBefore; i<=blockStampNow; i++) {
+            if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
+        }
     }
 
 }

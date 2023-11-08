@@ -51,6 +51,21 @@ contract Factory {
         emit PairCreated(token0, token1, pair, allPairs.length);
     }
 
+    // 공급자가 가지고 있는 pool 배열
+    function setValidatorPoolArr(address tokenA, address tokenB) internal {
+        address pair = getPair[tokenA][tokenB];
+        // 이미 있으면 중복 안되게, 삭제되면 pop
+        bool isDuplicated = false;
+        for(uint i=0; i<dataParams.validatorPoolArr[msg.sender].length; i++) {
+            if(dataParams.validatorPoolArr[msg.sender][i] == pair) {
+                isDuplicated == true;
+                break;
+            }
+        }
+        require(isDupulicated == false);
+        dataParams.validatorPoolArr[msg.sender].push(pair);
+    }
+
 
 
     function setFeeTo(address _feeTo) external {
