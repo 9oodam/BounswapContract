@@ -4,13 +4,18 @@ pragma solidity ^0.8.20;
 import "./Pair.sol";
 
 contract Data {
+    Pair pairParams;
+
     address[] public allPairs;
     address[] public allTokens;
 
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
-    constructor() {}
+    constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
+        pairParams = new Pair();
+        allTokens.push()
+    }
 
     // 모든 페어 주소 배열
     function getAllPairAddress() public view returns (address[]) {
@@ -39,7 +44,7 @@ contract Data {
     function getEachPool(address pa, uint blockStampNow, uint blockStamp24hBefore) public returns (allPoolData) {
         // 24H tvl 계산
         // volume 계산
-        return allPoolData(pa, pairAddress[pa].getAllData(), tvl, volume);
+        return allPoolData(pa, pairParams[pa].getAllData(), tvl, volume);
     }
 
     // my pool detail page에서 보여줄 정보
