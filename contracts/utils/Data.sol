@@ -13,6 +13,12 @@ contract Data {
     // blockTimeStamp로 blockNumber 찾기
     mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
 
+    // pool 예치해서 발생한 fee (미청구)
+    mapping (address validator => UnclaimedFeeData) public userUnclaimedFee;
+    struct UnclaimedFeeData {
+        uint256 token0FeeAmount;
+        uint256 token1FeeAmount;
+    }
 
     constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
         pairParams = new Pair();
@@ -54,7 +60,10 @@ contract Data {
         return BounswapPair(pa).getUserLiquidity(msg.sender);
     }
 
-
+    // pool detail page에서 사용자가 아직 미청구한 수수료
+    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
+        return userUnclaimedFee[msg.sender];
+    }
 
 
     // 모든 토큰 주소 배열

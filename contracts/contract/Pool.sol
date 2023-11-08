@@ -22,14 +22,6 @@ contract Pool is Token {
     // uint public price1CumulativeLast;
 
 
-    // 총 발생한 fee
-    mapping (address validator => UnclaimedFeeData) public userUnclaimedFee;
-    struct UnclaimedFeeData {
-        uint256 token0FeeAmount;
-        uint256 token1FeeAmount;
-    }
-
-
     // 실행 안전장치
     uint private unlocked = 1;
     modifier lock() {
@@ -155,11 +147,6 @@ contract Pool is Token {
         return true;
     }
 
-
-    // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
-        return userUnclaimedFee[msg.sender];
-    }
 
     // 미청구 수수료 청구하는 함수
     function claimFee() public returns (bool) {
