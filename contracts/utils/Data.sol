@@ -4,13 +4,21 @@ pragma solidity ^0.8.20;
 import "./Pair.sol";
 
 contract Data {
+    Pair pairParams;
+
     address[] public allPairs;
     address[] public allTokens;
 
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
 
-    constructor() {}
+    // blockTimeStamp로 blockNumber 찾기
+    mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
+
+
+    constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
+        pairParams = new Pair();
+    }
 
     // 모든 페어 주소 배열
     function getAllPairAddress() public view returns (address[]) {
@@ -39,7 +47,7 @@ contract Data {
     function getEachPool(address pa, uint blockStampNow, uint blockStamp24hBefore) public returns (allPoolData) {
         // 24H tvl 계산
         // volume 계산
-        return allPoolData(pa, pairAddress[pa].getAllData(), tvl, volume);
+        return allPoolData(pa, pairParams[pa].getAllData(), tvl, volume);
     }
 
     // my pool detail page에서 보여줄 정보
@@ -74,6 +82,13 @@ contract Data {
         } 
         return TokenData(tokenAddress, token.name, token.symbol, token.uri,
             token.totalSupply, totalVolume);
+    }
+
+    // 24시간 전부터 현재까지 발생한 Block number 찾기
+    function getBlockNumber(uint blockStampNow, uint blockStamp24hBefore) public returns (uin32[]) {
+        for(uint i=blockStamp24hBefore; i<=blockStampNow; i++) {
+            if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
+        }
     }
 
 }
