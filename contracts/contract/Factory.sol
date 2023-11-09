@@ -7,6 +7,7 @@ import '../utils/Data.sol';
 
 contract Factory {
     Data dataParams;
+    address public dataAddress;
 
     address public feeTo;
     address public feeToSetter;
@@ -17,6 +18,7 @@ contract Factory {
 
     constructor(address _dataAddress, address _feeToSetter) public {
         feeToSetter = _feeToSetter;
+        dataAddress = _dataAddress;
         dataParams = new Data(_dataAddress);
     }
 
@@ -40,7 +42,7 @@ contract Factory {
         string memory symbolB = ERC20(tokenB).symbol();
         string memory combinedName = string(abi.encodePacked(nameA, "-", nameB));
         string memory combinedSymbol = string(abi.encodePacked(symbolA, symbolB));
-        Pool(pair).initialize(token0, token1, combinedName, combinedSymbol);
+        Pool(pair).initialize(dataAddress, token0, token1, combinedName, combinedSymbol);
 
         // getPair에 pair 주소 저장
         getPair[token0][token1] = pair;
