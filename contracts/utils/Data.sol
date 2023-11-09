@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./Pair.sol";
+
 contract Data {
     Pair pairParams;
 
@@ -23,7 +25,6 @@ contract Data {
     constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
         pairParams = new Pair();
     }
-
 
     // 모든 페어 주소 배열
     function getAllPairAddress() public view returns (address[]) {
