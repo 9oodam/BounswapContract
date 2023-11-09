@@ -19,6 +19,7 @@ contract InitialProxy {
 
     // initialPlay를 실행하다가 중간에 reject되는지 체크하는 변수
     bool isSucceed = true;
+    bool isSucceedPayable = true;
 
     constructor(address _wrappingAddress, address _factoryAddress, address _swapAddress, address _wbncAddress) {
         wrappingParams = new Wrapping(_wrappingAddress);
@@ -31,7 +32,7 @@ contract InitialProxy {
 
     // 최초 실행 함수
     // 매개변수로 받은 data를 반복문으로 돌면서 컨트랙트 내 함수 실행
-    function initialPlay(bytes[] memory data, address pairAddress) public payable returns (bool) {
+    function initialPlay(bytes[] memory data) public returns (bool) {
         for (uint i = 0; i < data.length; i++) {
             require(isSucceed == true, "Function failed");
             bool result = address(this).call(data[i]);
@@ -40,6 +41,16 @@ contract InitialProxy {
         // if(isSucceed == false) {
         //     address(this).wrappingWithdrawal();
         // }
+        return true;
+    }
+
+    // 최초 실행 함수 (payable)
+    function initialPlayPayable(bytes[] memory data) public payable returns (bool) {
+        for (uint i = 0; i < data.length; i++) {
+            require(isSucceedPayable == true, "Function failed");
+            bool result = address(this).call(data[i]);
+            isSucceedPayable = result;
+        }
         return true;
     }
 
@@ -87,14 +98,32 @@ contract InitialProxy {
     }
 
     // Swap.sol
-    // input 값을 지정해서 스왑
-    function swapBeforeSwapInput(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal returns (bool) {
-        bool result = swapParams.beforeSwapInput(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress);
-        // 함수 실행이 실패했을 시 Input token이 wbnc라면 
-        if(result !== true && inputToken == wbncAddress) {
-            wrappingWithdraw(userAddress, inputAmount);
-        }
-        return result;
+
+    // 1) input 값을 지정해서 스왑
+    // token -> token
+    function swapExactTokensForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
+        result = swapParams.exactTokensForTokens(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress);
     }
-    // output 값을 지정해서 스왑
+    // token -> bnc
+    function swapExactTokensForBNC(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
+        result = swapParams.exactTokensForBNC(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress);
+    }
+    // bnc -> token
+    function swapExactBNCForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal payable returns (bool result) {
+        result = swapParams.exactBNCForTokens(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress).value(inputAmount);
+    }
+
+    // 2) output 값을 지정해서 스왑
+    // token -> token
+    function swapTokensForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
+        result = swapParams.tokensForExactTokens(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress);
+    }
+    // token -> bnc
+    function swapTokensForExactBNC(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
+        result = swapParams.tokensForExactBNC(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress);
+    }
+    // bnc -> tokdn
+    function swapBNCForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal payable returns (bool result) {
+        result = swapParams.bNCForExactTokens(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress).value(maxToken);
+    }
 }

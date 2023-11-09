@@ -36,6 +36,7 @@ contract Data {
     mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
 
     // pool 예치해서 발생한 fee (미청구)
+    mapping (address pairAddress => address[] validator) public validatorArr;
     mapping (address validator => mapping (address pairAddress => UnclaimedFeeData)) public userUnclaimedFee;
     struct UnclaimedFeeData {
         uint256 token0FeeAmount;

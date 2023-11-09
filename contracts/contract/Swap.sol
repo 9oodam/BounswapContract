@@ -3,17 +3,19 @@ pragma solidity ^0.8.20;
 
 import "./Pool.sol";
 import "./Token.sol";
+import "./WBNC.sol";
+import "../utils/Data.sol";
 
 contract Swap {
+    Data dataParams;
+    WBNC wbncParams;
     address wbncAddress;
 
-    constructor(address _wbncAddress) {
+    constructor(address _dataAddress, address _wbncAddress) {
+        dataParams = Data(_dataAddress);
+        wbncParams = WBNC(_wbncAddress);
         wbncAddress = _wbncAddress;
     }
-
-    // token0, token1의 volume
-    // mapping(uint blockStamp => uint volume) public volumePerTransaction0; 
-    // mapping(uint blockStamp => uint volume) public volumePerTransaction1;
 
     // 재진입 공격 방지를 위한 lock 정의
     uint private unlocked = 1;
@@ -33,109 +35,145 @@ contract Swap {
         address indexed to
     );
 
+    // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
+    function getAmountOut(
+        address pairAddress,
+        uint inputAmount, // A
+        address[] path
+    ) public pure returns (uint amountOut) { // B 
+        // CPMM => AY / (A+X) = B 
+        require(inputAmount > 0, "INSUFFICIENT_INPUT_AMOUNT");
+        Pool pool = Pool(pairAddress);
+        (uint reserveIn, uint reserveOut) = pool.token0 == path[0] ? (pool.reserve0, pool.reserve1) : (pool.reserve1, pool.reserve0);
+        uint amountInWithFee = inputAmount * 997; // 수수료 0.3%
+        uint numerator = amountInWithFee * reserveOut;
+        uint denominator = (reserveIn * 1000) + amountInWithFee; // 수수료 고려안한 원래 금액 + 수수료
+        amountOut = numerator / denominator;
+    }
+    // 사용자가 ouput에 숫자 넣었을 때 in에 나올 예상량 계산
+    function getAmountIn(
+        address pairAddress,
+        uint outputAmount, // B
+        address[] path
+    ) public pure returns (uint amountIn) { // A
+        // CPMM => XB / (Y - B) = A
+        require(outputAmount > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
+        Pool pool = Pool(pairAddress);
+        (uint reserveIn, uint reserveOut) = pool.token0 == path[0] ? (pool.reserve0, pool.reserve1) : (pool.reserve1, pool.reserve0);
+        require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT)LIQUIDITY");
+        uint numerator = reserveIn * outputAmount * 1000;
+        uint denominator = (reserveOut - outputAmount) * 997;
+        amountIn = (numerator / denominator) + 1; // 나눗셈 손실을 보상하기 위해 1을 더함
+    }
+
     // input 값을 지정, 계산된 ouput 값을 받음 / 받을 값이 0.5% 이하로 떨어지면 실행 안함
-    function beforeSwapInput(
+    function exactTokensForTokens(
         address pairAddress,
         uint inputAmount, // 사용자가 입력하는 A값
         uint minToken // 슬리피지 방지를 위한 최솟값
         address[] calldata path, // 프론트에서 셀렉한 토큰 2개
         address to
     ) public returns (bool) {
-        Pool pool = Pool(pairAddress);
-        uint amount = getAmountOut(inputAmount, pool.reserve0, pool.reserve1);
+        uint amount = getAmountOut(pairAddress, inputAmount, path); // output
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
-        Token(path[0]).transfer(to, pairAddress, inputAmount); // 사용자 -> 페어로 토큰 전송
-
-        _swap(amount, path, to);
+        Token(path[0]).transferFrom(to, pairAddress, inputAmount); // 사용자 -> 페어로 토큰 전송
+        _swap(pairAddress, amount, path, to);
         return true;
     }
-
-    // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
-    function getAmountOut(
-        uint inputAmount, // A
-        uint reserveIn, // X
-        uint reserveOut // Y
-    ) public pure returns (uint amountOut) { // B 
-        // CPMM
-        // AY / (A+X) = B 
-        require(inputAmount > 0, "INSUFFICIENT_INPUT_AMOUNT");
-        uint amountInWithFee = inputAmount * 997; // 수수료 0.3%
-        uint numerator = amountInWithFee * reserveOut;
-        uint denominator = (reserveIn * 1000) + amountInWithFee; // 수수료 고려안한 원래 금액 + 수수료
-        amountOut = numerator / denominator;
+    function exactTokensForBNC(
+        address pairAddress,
+        uint inputAmount,
+        uint minToken,
+        address[] calldata path,
+        address to
+    ) public payable returns (bool) {
+        require(path[1] == wbncAddress, 'INVALID_PATH'); // output이 wbnc
+        uint amount = getAmountOut(pairAddress, inputAmount);
+        require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
+        Token(path[0]).transferFrom(to, pairAddress, inputAmount, path);
+        _swap(pairAddress, amount, path, address(this)); // 이 컨트랙트로 wbnc 소유주 바꿈
+        require(wbncParams.withdraw(amount), "Withdraw failed"); // 이 컨트랙트가 보유한 wbnc 소각
+        (bool success, ) = to.call{value: amount}(""); // 사용자에게 bnc 전송
+        require(success, "TransferHelper: ETH transfer failed");
+    }
+    function exactBNCForTokens(
+        address pairAddress,
+        uint inputAmount,
+        uint minToken,
+        address[] calldata path,
+        address to
+    ) public payable returns (bool) {
+        require(path[0] == wbncAddress, 'INVALID_PATH'); // input값이 wbnc
+        uint amount = getAmountOut(pairAddress, inputAmount, path);
+        require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
+        wbncParams.deposit{value: inputAmount}(); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
+        assert(wbncParams.transfer(pairAddress, inputAmount)); // 발행된 wbnc 소유주를 페어로
+        _swap(pairAddress, amount, path, to);
     }
 
-    // output 값을 지정, 계산된 input 값을 받음
-    // 지불하고 싶은 값이 0.5% 이상으로 올라가면 실행 안함
-    function beforeSwapOutput(
-        address userAddress,
+    // output 값을 지정, 계산된 input 값을 받음 / 지불하고 싶은 값이 0.5% 이상으로 올라가면 실행 안함
+    function tokensForExactTokens(
         address pairAddress,
-        address outputTokenAddress,
         uint outputAmount,
         uint maxToken
+        address[] calldata path,
+        address to
     ) public returns (bool) {
-        Pool pair = Pool(pairAddress);
-
-        (uint112 reserve0, uint112 reserve1) = pair.getReserves();
-
-        uint inputAmount;
-        if (outputTokenAddress == pair.token0()) {
-            inputAmount = getAmountIn(outputAmount, reserve1, reserve0);
-        } else if (outputTokenAddress == pair.token1()) {
-            inputAmount = getAmountIn(outputAmount, reserve0, reserve1);
-        } else {
-            revert("Invalid token address");
-        }
-
-        // output으로 input(내꺼) 계산이니까 많아지면 손해
-        uint maxAmountWithSlippage = (inputAmount * 1005) / 1000;
-        require(maxAmountWithSlippage <= maxToken, "EXCESSIVE_INPUT_AMOUNT");
-
-        if (tokenAddress == pair.token0()) {
-            swap(userAddress, inputAmount, 0, pairAddress);
-        }else {
-            swap(userAddress, 0, inputAmount, pairAddress);
-        }
+        uint amount = getAmountIn(pairAddress, outputAmount, path);
+        require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
+        Token(path[0]).transferFrom(to, pairAddress, amount);
+        _swap(pairAddress, outputAmount, path, to);
         return true;
     }
-
-    function getAmountIn(
-        uint outputAmount, // B
-        uint reserveIn, // X
-        uint reserveOut // Y
-    ) public pure returns (uint amountIn) { // A
-        // CPMM output으로 input값 계산할 때
-        // B값이 고정되어 있을 때, A를 찾는 것
-        // XB / (Y - B) = A
-        require(outputAmount > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT)LIQUIDITY");
-        uint numerator = reserveIn * outputAmount * 1000;
-        uint denominator = (reserveOut - outputAmount) * 997;
-        amountIn = (numerator / denominator) + 1; // 나눗셈 손실을 보상하기 위해 1을 더함
-
-        return amountIn;
+    function tokensForExactBNC(
+        address pairAddress,
+        uint outputAmount,
+        uint maxToken,
+        address[] calldata path,
+        address to
+    ) public returns (bool) {
+        require(path[1] == wbncAddress, 'INVALID_PATH');
+        uint amount = getAmountIn(pairAddress, outputAmount, path);
+        require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
+        Token(path[0]).transferFrom(to, pairAddress, amount);
+        _swap(pairAddress, outputAmount, path, address(this));
+        require(wbncParams.withdraw(outputAmount), "Withdraw failed"); // 이 컨트랙트가 보유한 wbnc 소각
+        (bool success, ) = to.call{value: outputAmount}(""); // 사용자에게 bnc 전송
+        require(success, "TransferHelper: ETH transfer failed");
     }
-
-
+    function bNCForExactTokens(
+        address pairAddress,
+        uint outputAmount,
+        address[] calldata path,
+        address to
+    ) public payable returns (bool) {
+        require(path[0] == wbncAddress, 'INVALID_PATH');
+        uint amount = getAmountIn(pairAddress, outputAmount, path);
+        require(amount <= msg.value, 'EXCESSIVE_INPUT_AMOUNT'); // 계산된 input 값보다 사용자가 실제 보낸 value 값이 더 많아야 함
+        wbncParams.deposit{value: amount}();
+        assert(wbncParams.transfer(pairAddress, amount)); // 발행된 wbnc를 페어 소유로
+        _swap(pairAddress, outputAmount, path, to);
+        // 실제 받은 value가 계산된 값보다 큰 경우 사용자에게 돌려줌
+        if (msg.value > amount) to.call{value: msg.value - amount}("");
+    }
 
 
     // input/ouput => token0/token1 지정해주는 부분
-    function _swap(uint amount, address[] memory path, address _to) internal virtual {{
+    function _swap(address pairAddress, uint amount, address[] memory path, address _to) internal virtual {
         (address input, address output) = (path[0], path[1]);
         (address token0, address token1) = input < output? (input, ouput) : (ouput, input);
         (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amount) : (amount, uint(0));
-        swap(amount0Out, amount1Out, _to);
+        swap(pairAddress, amount0Out, amount1Out, _to);
     }
 
     // 사용자가 계산된 amount를 돌려받는 부분 (to == 사용자)
-    function swap(uint amount0Out, uint amount1Out, address to) external lock {
+    function swap(address pairAddress, uint amount0Out, uint amount1Out, address to) external lock {
         require(amount0Out > 0 || amount1Out > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
-        (uint112 _reserve0, uint112 _reserve1, ) = pair.getReserves();
+        (uint112 _reserve0, uint112 _reserve1, ) = Pool(pairAddress).getReserves();
         require(amount0Out < _reserve0 && amount1Out < _reserve1, "INSUFFICIENT_LIQUIDITY");
 
         uint balance0 = 0; 
         uint balance1 = 0;
-
         {
         address _token0 = pair.token0();
         address _token1 = pair.token1();
@@ -168,23 +206,23 @@ contract Swap {
         require(SafeMath.mul(balance0Adjusted, balance1Adjusted) >= SafeMath.mul(SafeMath.mul(uint(_reserve0), _reserve1), 1000 ** 2), "UniswapV2: K");
         }
 
-        // unclaimed fee 누적시키기
-        
-        // for (uint i = 0; i < validatorArr.length; i++) {
-        //     uint userLiquidity = poolDataForValidator[validatorArr[i]].lpToken;
-        //     uint liquidity = balanceOf(address(this));
-
-        //     userlUnclaimedFees[validatorArr[i]].token0Amount +=
-        //         (SafeMath.mul(amount0In, 3) * userLiquidity) /
-        //         liquidity;
-        //     userlUnclaimedFees[validatorArr[i]].token1Amount +=
-        //         (SafeMath.mul(amount1In, 3) * userLiquidity) /
-        //         liquidity;
-            // userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
-            // userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
-        
-
-        pair._update(balance0, balance1, _reserve0, _reserve1);
+        Pool(poolAddress)._update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(userAddress, amount0In, amount1In, amount0Out, amount1Out, pairAddress);
     }
+
+    // unclaimed fee 누적시키기
+    // function addUnclaimedFee(address pairAddress, address userAddress) internal {
+    //     for (uint i = 0; i < dataParams.validatorArr[pairAddress].length; i++) {
+    //         uint userLiquidity = Pool(pairAddress).balanceOf()
+
+    //         userlUnclaimedFees[validatorArr[i]].token0Amount +=
+    //             (SafeMath.mul(amount0In, 3) * userLiquidity) /
+    //             liquidity;
+    //         userlUnclaimedFees[validatorArr[i]].token1Amount +=
+    //             (SafeMath.mul(amount1In, 3) * userLiquidity) /
+    //             liquidity;
+    //         userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
+    //         userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
+        
+    // }
 }

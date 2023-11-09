@@ -109,6 +109,7 @@ contract Pool is Token {
         }
         require(liquidity > 0, 'INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
+        Data(dataAddress).validatorArr.push(to);
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1); // reserve0 and reserve1 are up-to-date
@@ -141,8 +142,9 @@ contract Pool is Token {
         balance0 = Token(_token0).balanceOf(address(this));
         balance1 = Token(_token1).balanceOf(address(this));
 
-        // 유동성을 모두 제거하는 경우 공급자의 Pool 배열에서 삭제
+        // 유동성을 모두 제거하는 경우 
         if(percentage == 100) {
+            // 공급자의 Pool 배열에서 삭제
             address[] arr = Data(dataAddress).validatorPoolArr[to];
             uint lastIndex = arr.length - 1;
             for(uint i=0; i<arr.length; i++) {
@@ -151,6 +153,16 @@ contract Pool is Token {
                 }
             }
             arr.pop();
+
+            // pool의 공급자 배열에서 삭제
+            address[] arr2 = Data(dataAddress).validatorArr[address(this)];
+            uint lastIndex2 = arr2.length - 1;
+            for(uint i=0; i<arr2.length; i++) {
+                if(arr2[i] == to) {
+                    arr2[i] = arr[lastIndex2];
+                }
+            }
+            arr2.pop();
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
