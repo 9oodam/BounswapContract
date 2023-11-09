@@ -1,16 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./Pair.sol";
+import "./Pool.sol";
+import "./Token.sol";
 
 contract Data {
-    Pair pairParams;
-
-    address[] public allPairs;
-    address[] public allTokens;
+    address[] public allPairs; // 모든 페어의 주소 배열
+    address[] public allTokens; // 모든 토큰의 주소 배열
 
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
+    struct PoolDetail {
+        address pairAddress,
+        string token0Uri,
+        string token1Uri,
+        string token0Symbol,
+        string token1Symbol,
+        uint256 tvl
+    }
+    struct MyPoolDetail {
+        PoolDetail pooldetail,
+        uint256 token0Amount,
+        uint256 token1Amount
+    }
+    struct TokenDetail {
+        address tokenAddress,
+        string name,
+        string symbol,
+        string uri,
+        uint256 tvl
+    }
+
 
     // blockTimeStamp로 blockNumber 찾기
     mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
@@ -22,43 +42,42 @@ contract Data {
         uint256 token1FeeAmount;
     }
 
-    constructor(address _wbncAddress, address _ethAddress, address _usdtAddress, address _bnbAddress) {
-        pairParams = new Pair();
-    }
+    constructor() {}
 
-    // 모든 페어 주소 배열
+    // 모든 페어 주소 배열 반환
     function getAllPairAddress() public view returns (address[]) {
         return allPairs;
     }
 
     // All pool dash board 목록 반환
-    function getAllPools(uint blockStampNow, uint blockStamp24hBefore) public returns (allPoolData[]) {
+    function getAllPools() public returns (PoolDetail[] memory) {
         for (uint i=0; i<allPairs.length; i++) {
-            arr[i] = getEachPool(allPairs[i], blockStampNow, blockStamp24hBefore);
+            arr[i] = getEachPool(allPairs[i]);
         }
         return arr;
     }
 
     // My pool dash board 목록 반환
-    function getUserPools(uint blockStampNow, uint blockStamp24hBefore) public returns (allPoolData[]) {
+    function getUserPools() public returns (PoolDetail[] memory) {
         address[] userPool = validatorPoolArr[msg.sender];
-
         for (uint i=0; i<userPool.length; i++) {
-            arr[i] = getEachPool(allPairs[i], blockStampNow, blockStamp24hBefore);
+            arr[i] = getEachPool(userPool[i]);
         }
         return arr;
     }
 
-    // pool detail 정보
-    function getEachPool(address pa, uint blockStampNow, uint blockStamp24hBefore) public returns (allPoolData) {
-        // 24H tvl 계산
-        // volume 계산
-        return allPoolData(pa, pairParams[pa].getAllData(), tvl, volume);
+    // 각 pool detail 정보
+    function getEachPool(address pairAddress) public returns (PoolDetail memory) {
+        Pool pool = Pool(pairAddress);
+        Token token0 = Token(pool.token0);
+        Token token1 = Token(pool.token1);
+        uint256 tvl = pool.reserve0 + pool.reserve1;
+        return PoolDetail(pairAddress, token0.uri, token1.uri, token0.symbol, token1.symbol, tvl);
     }
 
     // my pool detail page에서 보여줄 정보
-    function getUserPoolDetail(address pa) public returns (Data[]) {
-        return BounswapPair(pa).getUserLiquidity(msg.sender);
+    function getUserPoolDetail(address pairAddress) public returns (MyPoolDetail memory) {
+        return MyPoolDetail(getEachPool(pairAddress), Pool(pairAddress).getUserLiquidity(msg.sender));
     }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
@@ -73,7 +92,7 @@ contract Data {
     }
 
     // 플랫폼 내 모든 토큰을 반환하는 함수
-    function getAllTokens(uint blockStampNow, uint blockStamp24hBefore) public returns (TokenData[] memory) {
+    function getAllTokens() public returns (TokenDetail[] memory) {
         for(uint i=0; i<allTokens.length; i++) {
             arr[i] = getEachToken(allTokens[i]);
         }
@@ -81,23 +100,22 @@ contract Data {
     }
 
     // 특정 토큰 정보 반환하는 함수
-    function getEachToken(address tokenAddress, uint blockStampNow, uint blockStamp24hBefore) public returns (TokenData) {
+    function getEachToken(address tokenAddress) public returns (TokenDetail) {
         Token token = Token(tokenAddress);
-
-        // volume 계산
-        uint totalVolume = 0;
+        uint256 tvl = 0;
         for(uint i=0; i<allPairs.length; i++) {
-            totalVolume += BounswapPair(allPairs[i]).getTotalVolume(tokenAddress, blockStampNow, blockStamp24hBefore);
-        } 
-        return TokenData(tokenAddress, token.name, token.symbol, token.uri,
-            token.totalSupply, totalVolume);
+            volume = (allPairs[i] == Pool(allPairs[i]).token0) ? reserve0 : reserve1;
+            tvl += volume;
+        }
+
+        return TokenDetail(tokenAddress, token.name, token.symbol, token.uri, tvl);
     }
 
-    // 24시간/7일 전부터 현재까지 발생한 Block number 찾기
-    function getBlockNumber(uint blockStampNow, uint blockStampBefore) public returns (uin32[]) {
-        for(uint i=blockStamp24hBefore; i<=blockStampNow; i++) {
+    // 24시간/7일 전부터 현재까지 발생한 Block number 반환
+    function getBlockNumber(uint timeStampNow, uint timeStampBefore) public returns (uin32[]) {
+        for(uint i=timeStampBefore; i<timeStampNow; i++) {
             if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
         }
+        return arr;
     }
-
 }

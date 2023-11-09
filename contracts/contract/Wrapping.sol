@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./WBNC.sol"; // Wrapped BNC 스마트 계약
 
 contract Wrapping {
-    address public owner;
+    address public owner; // initialProxy contract
     WBNC public wbncContract;
 
     constructor(address _wbncContract) {
@@ -22,6 +22,7 @@ contract Wrapping {
     // WBNC를 반납하고 BNC를 받음
     function withdrawWBNC(address userAddress, address pairAddress, uint256 wbncAmount) public payable returns (bool) {
         require(msg.sender == owner, "Only owner can withdraw");
+        uint256 wbncAmount = balances[userAddress];
         wbncContract.withdraw(pairAddress, wbncAmount);
         payable(userAddress).transfer(wbncAmount);
         return true;

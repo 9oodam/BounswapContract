@@ -12,7 +12,7 @@ abstract contract Token is IERC20 {
     uint internal decimals = 18;
     uint public totalSupply;
 
-    mapping (address => uint) balances;
+    mapping (address => uint) public balances;
 
     constructor(string memory _name, string memory _symbol, string memory _uri, uint _amount) {
         name = _name;
@@ -27,7 +27,6 @@ abstract contract Token is IERC20 {
         balances[msg.sender] += amount;
         totalSupply += amount;
     }
-
 
 
     function tokenURI(string memory _imageUri) public view returns (string memory) {

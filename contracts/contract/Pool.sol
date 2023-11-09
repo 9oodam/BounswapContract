@@ -21,7 +21,6 @@ contract Pool is Token {
     // uint public price0CumulativeLast;
     // uint public price1CumulativeLast;
 
-
     // 실행 안전장치
     uint private unlocked = 1;
     modifier lock() {
@@ -140,6 +139,7 @@ contract Pool is Token {
         balance0 = Token(_token0).balanceOf(address(this));
         balance1 = Token(_token1).balanceOf(address(this));
 
+
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
         emit Burn(msg.sender, amount0, amount1, to);
@@ -163,11 +163,13 @@ contract Pool is Token {
     }
 
     // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
-    // function getUserLiquidity(address validator) public view returns (Data memory) {
-    //     // lptoken 개수로 token0, token1 예치량 역계산
-
-    //     return ();
-    // }
+    function getUserLiquidity(address validator) public view returns (uint256) {
+        // lptoken 개수로 token0, token1 예치량 역계산
+        uint256 lpTokenAmount = balances[validator];
+        uint256 amount0 = SafeMath.mul(lpTokenAmount, reserve0) / _totalSupply; 
+        uint256 amount1 = SafeMath.mul(lpTokenAmount, reserve1) / _totalSupply; 
+        return (amount0, amount1);
+    }
 
 
     function skim(address to) external lock {

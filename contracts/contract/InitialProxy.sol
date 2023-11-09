@@ -33,9 +33,9 @@ contract InitialProxy {
             bool result = address(this).call(data[i]);
             isSucceed = result; // 함수 순서대로 실행 중 실패하면
         }
-        if(isSucceed == false) {
-            address(this).wrappingWithdrawal();
-        }
+        // if(isSucceed == false) {
+        //     address(this).wrappingWithdrawal();
+        // }
         return true;
     }
 
@@ -46,8 +46,8 @@ contract InitialProxy {
         return result;
     }
     // wbnc 소각 후 bnc 사용자에게 전송
-    function wrappingWithdraw(address userAddress, address pairAddress, uint256 wbncAmount) internal returns (bool) {
-        bool result = wrappingParams.withdrawWBNC(userAddress, pairAddress, wbncAmount);
+    function wrappingWithdraw(address userAddress, address pairAddress) internal returns (bool) {
+        bool result = wrappingParams.withdrawWBNC(userAddress, pairAddress);
     }
 
     // Factory.sol
@@ -57,7 +57,7 @@ contract InitialProxy {
         return result;
     }
     // 공급자가 가지고 있는 Pool 배열
-    function factoryValidator(address tokenA, address tokenB) internal returns (bool) {
+    function factorySetValidator(address tokenA, address tokenB) internal returns (bool) {
         bool result = factoryParams.setValidatorPoolArr(tokenA, tokenB);
         return result;
     }
