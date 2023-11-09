@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "./Token.sol";
 import "./Factory.sol";
+import "./Data.sol";
 
 import "../libraries/Math.sol";
 import "../libraries/SafeMath.sol";
@@ -10,6 +11,7 @@ import "../libraries/SafeMath.sol";
 contract Pool is Token {
 
     address public factory;
+    address public dataAddress;
 
     address public token0;
     address public token1;
@@ -139,6 +141,17 @@ contract Pool is Token {
         balance0 = Token(_token0).balanceOf(address(this));
         balance1 = Token(_token1).balanceOf(address(this));
 
+        // 유동성을 모두 제거하는 경우 공급자의 Pool 배열에서 삭제
+        if(percentage == 100) {
+            address[] arr = Data(dataAddress).validatorPoolArr[to];
+            uint lastIndex = arr.length - 1;
+            for(uint i=0; i<arr.length; i++) {
+                if(arr[i] == address(this)) {
+                    arr[i] = arr[lastIndex];
+                }
+            }
+            arr.pop();
+        }
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
@@ -149,16 +162,15 @@ contract Pool is Token {
 
 
     // 미청구 수수료 청구하는 함수
-    function claimFee() public returns (bool) {
+    function claimFee(address validator) public returns (bool) {
         // 누적된 미청구 수수료가 0 이상 있어야 함
-        uint256 token0Amount = userUnclaimedFee[msg.sender].token0Amount;
-        uint256 token1Amount = userUnclaimedFee[msg.sender].token1Amount;
-        require(token0Amount > 0 || token1Amount > 0);
-
-        Token(token0).transfer(msg.sender, token0Amount);
-        Token(token1).transfer(msg.sender, token1Amount);
-        userUnclaimedFee[msg.sender].token0Amount = 0;
-        userUnclaimedFee[msg.sender].token1Amount = 0;
+        uint256 token0FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount;
+        uint256 token1FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount;
+        require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
+        Token(token0).transfer(validator, token0FeeAmount);
+        Token(token1).transfer(validator, token1FeeAmount);
+        Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount = 0;
+        Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount = 0;
         return true;
     }
 

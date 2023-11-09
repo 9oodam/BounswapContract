@@ -36,7 +36,7 @@ contract Data {
     mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
 
     // pool 예치해서 발생한 fee (미청구)
-    mapping (address validator => UnclaimedFeeData) public userUnclaimedFee;
+    mapping (address validator => mapping (address pairAddress => UnclaimedFeeData)) public userUnclaimedFee;
     struct UnclaimedFeeData {
         uint256 token0FeeAmount;
         uint256 token1FeeAmount;
@@ -81,8 +81,8 @@ contract Data {
     }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
-        return userUnclaimedFee[msg.sender];
+    function getUnclaimedFee(address pairAddress) public returns (UnclaimedFeeData memory) {
+        return userUnclaimedFee[msg.sender][pairAddress];
     }
 
 
@@ -107,7 +107,6 @@ contract Data {
             volume = (allPairs[i] == Pool(allPairs[i]).token0) ? reserve0 : reserve1;
             tvl += volume;
         }
-
         return TokenDetail(tokenAddress, token.name, token.symbol, token.uri, tvl);
     }
 

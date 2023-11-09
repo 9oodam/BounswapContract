@@ -13,17 +13,16 @@ contract Wrapping {
     }
 
     // 사용자가 지불한 BNC를 WBNC contract로 전송하고 민팅한 WBNC를 Pair에 transfer
-    function depositWBNC(address pairAddress) public payable returns (bool) {
+    function depositWBNC(address userAddress) public payable returns (bool) {
         uint256 bncAmount = msg.value;
-        wbncContract.deposit{value: bncAmount}(pairAddress);
+        wbncContract.deposit{value: bncAmount}(userAddress);
         return true;
     }
 
     // WBNC를 반납하고 BNC를 받음
-    function withdrawWBNC(address userAddress, address pairAddress, uint256 wbncAmount) public payable returns (bool) {
+    function withdrawWBNC(address userAddress, uint256 wbncAmount) public payable returns (bool) {
         require(msg.sender == owner, "Only owner can withdraw");
-        uint256 wbncAmount = balances[userAddress];
-        wbncContract.withdraw(pairAddress, wbncAmount);
+        wbncContract.withdraw(userAddress, wbncAmount);
         payable(userAddress).transfer(wbncAmount);
         return true;
     }
