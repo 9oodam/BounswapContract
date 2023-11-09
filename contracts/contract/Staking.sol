@@ -35,6 +35,9 @@ contract Staking is Ownable {
     uint256 public dev4Addr;
 
     uint256 public BNCPerBlock; 
+
+    uint256 public BONUS_MULTIPLIER = 1;
+
     uint256 public lastDevBlockWithdraw;
 
 
@@ -95,7 +98,7 @@ contract Staking is Ownable {
         lastBlockDevWithdraw = _startBlock; // 개발자가 보상을 받기 위한 첫 블록을 기록
     }
 
-    // LP 풀의 숫자 확인 
+    // LP 풀의 갯수 확인 
     function poolLength() external view returns (uint256) {
         return poolInfo.length;
     }
@@ -124,17 +127,38 @@ contract Staking is Ownable {
     // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지
     function _checkPoolDuplicate(???? _lptoken) view internal {
         uint256 length == poolInfo.length;
-        for(uint256 pid = 0; pid < length; pid++) {
+        for(uint256 pid = 0; pid < length; ++pid) {
             require(poolInfo[pid].lptoken != _lptoken, "pool existed");
         }
     }
 
-    
+    // 모든 풀 업데이트
+    function massUpdatePools() public {
+        uint256 length = poolInfo.length;
+        for(uint256 pid = 0; pid < length; ++pid) {
+            updatePool(pid);
+        }
+    }
 
+    // 풀의 보상 변수들을 최신상태로 업데이트
+    function updatePool(uint256 _pid) public vaildPool(_pid) {
+        // Pool Id를 기반으로 원하는 풀을 검색
+        PoolInfo storage pool = poolInfo[_pid];
+        // 현재 블록까지의 보상을 계산했다면 종료
+        if(block.number <= pool.lastRewardBlock) {
+            return;
+        }
+        // Pool에 스테이킹된 LP토큰의 총 잔액을 가져옴
+        uint256 lpSupply = pool.lptoken.balanceOf(address(this));
+        // Pool에 스테이킹된 LP토큰이 없다면 lastRewardBlock를 현재 블록으로 업데이트하고 종료
+        if(lpSupply <= 0) {
+            pool.lastRewardBlock = block.number;
+            return;
+        }
+        
+        // multiplier 관련 개념 다시 정의하고 작성
 
-
-
-
+    }
 
 
 }
