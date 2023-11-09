@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./Pool.sol";
-import "./Token.sol";
+import "../contract/Pool.sol";
+import "../contract/Token.sol";
 
 contract Data {
     address[] public allPairs; // 모든 페어의 주소 배열
@@ -11,24 +11,24 @@ contract Data {
     // 특정 공급자가 가지고 있는 모든 페어 배열
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
     struct PoolDetail {
-        address pairAddress,
-        string token0Uri,
-        string token1Uri,
-        string token0Symbol,
-        string token1Symbol,
-        uint256 tvl
+        address pairAddress;
+        string token0Uri;
+        string token1Uri;
+        string token0Symbol;
+        string token1Symbol;
+        uint256 tvl;
     }
     struct MyPoolDetail {
-        PoolDetail pooldetail,
-        uint256 token0Amount,
-        uint256 token1Amount
+        PoolDetail pooldetail;
+        uint256 token0Amount;
+        uint256 token1Amount;
     }
     struct TokenDetail {
-        address tokenAddress,
-        string name,
-        string symbol,
-        string uri,
-        uint256 tvl
+        address tokenAddress;
+        string name;
+        string symbol;
+        string uri;
+        uint256 tvl;
     }
 
 
@@ -44,13 +44,26 @@ contract Data {
 
     constructor() {}
 
+    // 확인 필요 임의로 추가함
+    // validatorPoolArr 반환
+    function getValidatorPoolArr(address to) public view returns (address[] memory) {
+        return validatorPoolArr[to];
+    }
+
+    // 확인 필요 임의로 추가함
+    // validatorPoolArr 설정
+    function setValidatorPoolArr(address to, address[] memory poolArr) public view {
+        validatorPoolArr[to] = poolArr;
+    }
+
     // 모든 페어 주소 배열 반환
-    function getAllPairAddress() public view returns (address[]) {
+    function getAllPairAddress() public view returns (address[] memory) {
         return allPairs;
     }
 
     // All pool dash board 목록 반환
     function getAllPools() public returns (PoolDetail[] memory) {
+        PoolDetail[] memory arr = new PoolDetail[](allPairs.length); 
         for (uint i=0; i<allPairs.length; i++) {
             arr[i] = getEachPool(allPairs[i]);
         }
@@ -59,7 +72,8 @@ contract Data {
 
     // My pool dash board 목록 반환
     function getUserPools() public returns (PoolDetail[] memory) {
-        address[] userPool = validatorPoolArr[msg.sender];
+        address[] memory userPool = validatorPoolArr[msg.sender];
+        PoolDetail[] memory arr = new PoolDetail[](userPool.length);
         for (uint i=0; i<userPool.length; i++) {
             arr[i] = getEachPool(userPool[i]);
         }
@@ -69,15 +83,17 @@ contract Data {
     // 각 pool detail 정보
     function getEachPool(address pairAddress) public returns (PoolDetail memory) {
         Pool pool = Pool(pairAddress);
-        Token token0 = Token(pool.token0);
-        Token token1 = Token(pool.token1);
-        uint256 tvl = pool.reserve0 + pool.reserve1;
-        return PoolDetail(pairAddress, token0.uri, token1.uri, token0.symbol, token1.symbol, tvl);
+        Token token0 = Token(pool.token0());
+        Token token1 = Token(pool.token1());
+        (uint112 reserve0, uint112 reserve1,) = pool.getReserves();
+        uint256 tvl = reserve0 + reserve1;
+        return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl);
     }
 
     // my pool detail page에서 보여줄 정보
     function getUserPoolDetail(address pairAddress) public returns (MyPoolDetail memory) {
-        return MyPoolDetail(getEachPool(pairAddress), Pool(pairAddress).getUserLiquidity(msg.sender));
+        (uint256 amount0, uint256 amount1) = Pool(pairAddress).getUserLiquidity(msg.sender); 
+        return MyPoolDetail(getEachPool(pairAddress), amount0, amount1);
     }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
@@ -85,14 +101,20 @@ contract Data {
         return userUnclaimedFee[msg.sender][pairAddress];
     }
 
+    // 확인 필요 다른 컨트랙트에서 불러올때 참고
+    function getUnclaimedFee(address validator, address pairAddress) public returns (uint256, uint256) {
+        return (userUnclaimedFee[validator][pairAddress].token0FeeAmount, userUnclaimedFee[validator][pairAddress].token1FeeAmount);
+    }
+
 
     // 모든 토큰 주소 배열
-    function getAllTokenAddress() public view returns (address[]) {
+    function getAllTokenAddress() public view returns (address[] memory) {
         return allTokens;
     }
 
     // 플랫폼 내 모든 토큰을 반환하는 함수
     function getAllTokens() public returns (TokenDetail[] memory) {
+        TokenDetail[] memory arr = new TokenDetail[](allTokens.length);
         for(uint i=0; i<allTokens.length; i++) {
             arr[i] = getEachToken(allTokens[i]);
         }
@@ -100,20 +122,22 @@ contract Data {
     }
 
     // 특정 토큰 정보 반환하는 함수
-    function getEachToken(address tokenAddress) public returns (TokenDetail) {
+    function getEachToken(address tokenAddress) public returns (TokenDetail memory) {
         Token token = Token(tokenAddress);
         uint256 tvl = 0;
         for(uint i=0; i<allPairs.length; i++) {
-            volume = (allPairs[i] == Pool(allPairs[i]).token0) ? reserve0 : reserve1;
+            (uint112 reserve0, uint112 reserve1,) = Pool(allPairs[i]).getReserves();
+            uint256 volume = (allPairs[i] == Pool(allPairs[i]).token0()) ? reserve0 : reserve1;
             tvl += volume;
         }
-        return TokenDetail(tokenAddress, token.name, token.symbol, token.uri, tvl);
+        return TokenDetail(tokenAddress, token.name(), token.symbol(), token.uri(), tvl);
     }
 
     // 24시간/7일 전부터 현재까지 발생한 Block number 반환
-    function getBlockNumber(uint timeStampNow, uint timeStampBefore) public returns (uin32[]) {
-        for(uint i=timeStampBefore; i<timeStampNow; i++) {
-            if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
+    function getBlockNumber(uint32 timeStampNow, uint32 timeStampBefore) public returns (uint32[] memory) {
+        uint32[] memory arr = new uint32[](timeStampNow - timeStampBefore);
+        for(uint32 i=timeStampBefore; i<timeStampNow; i++) {
+            if(blockNumbers[i] != 0) arr[i] = blockNumbers[i];
         }
         return arr;
     }

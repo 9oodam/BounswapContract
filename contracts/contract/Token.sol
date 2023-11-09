@@ -19,20 +19,21 @@ abstract contract Token is IERC20 {
         symbol = _symbol;
         uri = tokenURI(_uri);
 
-        _mint(_amount * (10 ** decimals));
+        _mint(msg.sender, _amount * (10 ** decimals));
     }
 
     // 토큰 발행
-    function _mint(uint amount) internal {
-        balances[msg.sender] += amount;
+    function _mint(address to, uint amount) internal {
+        // balances[msg.sender] += amount;
+        balances[to] += amount;
         totalSupply += amount;
     }
 
 
-    function tokenURI(string memory _imageUri) public view returns (string memory) {
+    function tokenURI(string memory _imageUri) public pure returns (string memory) {
         return string.concat(_baseURI(), _imageUri);
     }
-    function _baseURI() internal view returns (string memory) {
+    function _baseURI() internal pure returns (string memory) {
         return "https://crimson-generous-ant-395.mypinata.cloud/ipfs/";
     }
 }

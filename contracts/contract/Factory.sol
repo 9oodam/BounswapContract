@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import './Token.sol';
-import './Pool.sol';
-import '../utils/Data.sol';
+import "./Token.sol";
+import "./Pool.sol";
+import "../utils/Data.sol";
 
 contract Factory {
     Data dataParams;
@@ -37,9 +37,9 @@ contract Factory {
         
         // 새로 생긴 pair 주소로 LP token CA 생성
         string memory nameA = Token(tokenA).name();
-        string memory nameA = Token(tokenB).name();
-        string memory symbolA = ERC20(tokenA).symbol();
-        string memory symbolB = ERC20(tokenB).symbol();
+        string memory nameB = Token(tokenB).name();
+        string memory symbolA = Token(tokenA).symbol();
+        string memory symbolB = Token(tokenB).symbol();
         string memory combinedName = string(abi.encodePacked(nameA, "-", nameB));
         string memory combinedSymbol = string(abi.encodePacked(symbolA, symbolB));
         Pool(pair).initialize(dataAddress, token0, token1, combinedName, combinedSymbol);
@@ -50,7 +50,7 @@ contract Factory {
         // Data.sol allPairs 배열에 추가
         dataParams.allPairs.push(pair);
 
-        emit PairCreated(token0, token1, pair, allPairs.length);
+        emit PairCreated(token0, token1, pair, dataParams.allPairs.length);
     }
 
     // 공급자가 가지고 있는 pool 배열
@@ -64,7 +64,7 @@ contract Factory {
                 break;
             }
         }
-        require(isDupulicated == false);
+        require(isDuplicated == false);
         dataParams.validatorPoolArr[msg.sender].push(pair);
     }
 

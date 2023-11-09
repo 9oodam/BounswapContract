@@ -3,12 +3,12 @@ pragma solidity ^0.8.20;
 
 import "./Token.sol";
 import "./Factory.sol";
-import "./Data.sol";
+import "../utils/Data.sol";
 
 import "../libraries/Math.sol";
 import "../libraries/SafeMath.sol";
 
-contract Pool is Token {
+abstract contract Pool is Token {
 
     address public factory;
     address public dataAddress;
@@ -19,6 +19,8 @@ contract Pool is Token {
     uint112 private reserve0;
     uint112 private reserve1;
     uint public kLast; // reserve0 * reserve1
+
+    uint32 public blockTimestampLast;
 
     // uint public price0CumulativeLast;
     // uint public price1CumulativeLast;
@@ -82,7 +84,7 @@ contract Pool is Token {
                 uint rootK = Math.sqrt(SafeMath.mul(uint(_reserve0), _reserve1));
                 uint rootKLast = Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
-                    uint numerator = SafeMath.mul(_totalSupply, SafeMath.sub(rootK, rootKLast));
+                    uint numerator = SafeMath.mul(totalSupply, SafeMath.sub(rootK, rootKLast));
                     uint denominator = SafeMath.add(SafeMath.mul(rootK, 5), rootKLast);
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
@@ -101,11 +103,12 @@ contract Pool is Token {
         uint amount1 = SafeMath.sub(balance1, _reserve1);
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
-        if (_totalSupply == 0) {
-            liquidity = SafeMath.sub(Math.sqrt(SafeMath.mul(amount0, amount1)), MINIMUM_LIQUIDITY);
+        uint liquidity;
+        if (totalSupply == 0) {
+            liquidity = SafeMath.sub(Math.sqrt(SafeMath.mul(amount0, amount1)), 10**3);
            _mint(address(0), 10**3); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min(SafeMath.mul(amount0, _totalSupply) / _reserve0, SafeMath.mul(amount1, _totalSupply) / _reserve1);
+            liquidity = Math.min(SafeMath.mul(amount0, totalSupply) / _reserve0, SafeMath.mul(amount1, totalSupply) / _reserve1);
         }
         require(liquidity > 0, 'INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
@@ -123,7 +126,8 @@ contract Pool is Token {
         address _token1 = token1;                                
         uint balance0 = Token(_token0).balanceOf(address(this));
         uint balance1 = Token(_token1).balanceOf(address(this));
-        uint liquidity = balanceOf(address(this)); // pair 가 가지고 있는 Lp
+        // uint liquidity = balanceOf(address(this)); // pair 가 가지고 있는 Lp
+        uint liquidity = balances[address(this)]; // pair 가 가지고 있는 Lp
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
@@ -131,26 +135,31 @@ contract Pool is Token {
         require(userLiquidity > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
 
         // 사용자에게 돌려줄 토큰의 양
-        amount0 = SafeMath.mul(userLiquidity, balance0) / _totalSupply; 
-        amount1 = SafeMath.mul(userLiquidity, balance1) / _totalSupply; 
+        uint amount0 = SafeMath.mul(userLiquidity, balance0) / totalSupply; 
+        uint amount1 = SafeMath.mul(userLiquidity, balance1) / totalSupply; 
 
         require(amount0 > 0 && amount1 > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
-        _burn(address(this), userLiquidity);
-        _safeTransfer(_token0, to, amount0);
-        _safeTransfer(_token1, to, amount1);
+        // _burn(address(this), userLiquidity);
+        // _safeTransfer(_token0, to, amount0);
+        // _safeTransfer(_token1, to, amount1);
         balance0 = Token(_token0).balanceOf(address(this));
         balance1 = Token(_token1).balanceOf(address(this));
 
         // 유동성을 모두 제거하는 경우 공급자의 Pool 배열에서 삭제
         if(percentage == 100) {
-            address[] arr = Data(dataAddress).validatorPoolArr[to];
+            // address[] memory arr = Data(dataAddress).validatorPoolArr[to];
+            address[] memory arr = Data(dataAddress).getValidatorPoolArr(to);
             uint lastIndex = arr.length - 1;
             for(uint i=0; i<arr.length; i++) {
                 if(arr[i] == address(this)) {
                     arr[i] = arr[lastIndex];
                 }
             }
-            arr.pop();
+            assembly {
+                mstore(arr, sub(mload(arr), 1))
+            }
+            Data(dataAddress).setValidatorPoolArr(to, arr);
+
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -163,9 +172,12 @@ contract Pool is Token {
 
     // 미청구 수수료 청구하는 함수
     function claimFee(address validator) public returns (bool) {
+
+        // uint256 token0FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount;
+        // uint256 token1FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount;
+        (uint256 token0FeeAmount, uint256 token1FeeAmount) = Data(dataAddress).getUnclaimedFee(validator, address(this));
+        
         // 누적된 미청구 수수료가 0 이상 있어야 함
-        uint256 token0FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount;
-        uint256 token1FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount;
         require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
         Token(token0).transfer(validator, token0FeeAmount);
         Token(token1).transfer(validator, token1FeeAmount);
@@ -175,11 +187,11 @@ contract Pool is Token {
     }
 
     // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
-    function getUserLiquidity(address validator) public view returns (uint256) {
+    function getUserLiquidity(address validator) public view returns (uint256, uint256) {
         // lptoken 개수로 token0, token1 예치량 역계산
         uint256 lpTokenAmount = balances[validator];
-        uint256 amount0 = SafeMath.mul(lpTokenAmount, reserve0) / _totalSupply; 
-        uint256 amount1 = SafeMath.mul(lpTokenAmount, reserve1) / _totalSupply; 
+        uint256 amount0 = SafeMath.mul(lpTokenAmount, reserve0) / totalSupply; 
+        uint256 amount1 = SafeMath.mul(lpTokenAmount, reserve1) / totalSupply; 
         return (amount0, amount1);
     }
 
@@ -187,8 +199,8 @@ contract Pool is Token {
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, SafeMath.sub(Token(_token0).balanceOf(address(this)), reserve0));
-        _safeTransfer(_token1, to, SafeMath.sub(Token(_token1).balanceOf(address(this)), reserve1));
+        // _safeTransfer(_token0, to, SafeMath.sub(Token(_token0).balanceOf(address(this)), reserve0));
+        // _safeTransfer(_token1, to, SafeMath.sub(Token(_token1).balanceOf(address(this)), reserve1));
     }
 
     function sync() external lock {
