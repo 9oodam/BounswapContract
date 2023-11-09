@@ -92,8 +92,8 @@ contract Data {
             token.totalSupply, totalVolume);
     }
 
-    // 24시간 전부터 현재까지 발생한 Block number 찾기
-    function getBlockNumber(uint blockStampNow, uint blockStamp24hBefore) public returns (uin32[]) {
+    // 24시간/7일 전부터 현재까지 발생한 Block number 찾기
+    function getBlockNumber(uint blockStampNow, uint blockStampBefore) public returns (uin32[]) {
         for(uint i=blockStamp24hBefore; i<=blockStampNow; i++) {
             if(blockNumbers[i] !== 0) arr[i] = blockNumbers[i];
         }

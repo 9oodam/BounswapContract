@@ -62,13 +62,6 @@ contract InitialProxy {
         return result;
     }
 
-    // 사용자 -> Pool 토큰 transfer
-    function transferToPool(address userAddress, address tokenA, address tokenB, uint256 tokenAamount, uint256 tokenBamount) public returns (bool) {
-        address pairAddress = factoryParams.getPair[tokenA][tokenB];
-        Token(tokenA).transfer(pairAddress, tokenAamount);
-        Token(tokenB).transfer(pairAddress, tokenBamount);
-    }
-
     // Pool.sol
     // add Liquidity & lp token 민팅
     function poolMint(address userAddress, address tokenA, address tokenB) public returns (bool) {
