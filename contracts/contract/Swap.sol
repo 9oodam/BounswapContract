@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./pair.sol";
+import "./Pool.sol";
+import "./Token.sol";
 
 contract Swap {
-    Pair public pair;
 
-    constructor(address _pairAddress) {
-        pair = Pair(_pairAddress);
-    }
+    constructor() {}
+
     // token0, token1의 volume
-    mapping(uint blockStamp => uint volume) public volumePerTransaction0; 
-    mapping(uint blockStamp => uint volume) public volumePerTransaction1;
+    // mapping(uint blockStamp => uint volume) public volumePerTransaction0; 
+    // mapping(uint blockStamp => uint volume) public volumePerTransaction1;
 
     // 재진입 공격 방지를 위한 lock 정의
     uint private unlocked = 1;
@@ -33,10 +32,13 @@ contract Swap {
 
     // input 값을 넣어서 ouput 값을 받고 싶을 때 == 받고 싶은 값이 0.5% 이하로 떨어지면 실행 안함
     function beforeSwapInput(
+        address userAddress,
+        address pairAddress,
         address tokenAddress, // 프론트에서 토큰 셀렉부분
         uint inputAmount, // 사용자가 입력하는 A값
         uint minToken // 슬리피지 방지를 위해 사용자가 입력하는 값 ? 
-    ) public returns (uint) {
+    ) public returns (bool) {
+        Pool pair = Pool(pairAddress);
         // 토큰 주소 확인해서 해당하는 토큰의 출력량 설정
         (uint amount0Out, uint amount1Out) = (0, 0); // 초기 값 할당
         if (tokenAddress == pair.token0()) {
@@ -56,7 +58,7 @@ contract Swap {
         if (amount0Out > 0) {
             outputAmount = getAmountOut(inputAmount, reserve0, reserve1);
         } else {
-            outputAmount = getAmountOut(inputAmount, reserve0, reserve1);
+            outputAmount = getAmountOut(inputAmount, reserve1, reserve0);
         }
 
         // 사용자가 100개 원할 시 최소 99.5개는 되야 실행되게
@@ -69,7 +71,12 @@ contract Swap {
             "INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
-        return outputAmount;
+        if (tokenAddress == pair.token0()) {
+            swap(userAddress, inputAmount, 0, pairAddress);
+        }else {
+            swap(userAddress, 0, inputAmount, pairAddress);
+        }
+        return true;
     }
 
     // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
@@ -89,11 +96,16 @@ contract Swap {
 
     // output 값을 넣어서 input 값을 받고 싶을 때 == 지불하고 싶은 값이 0.5% 이상으로 올라가면 실행 안함
     function beforeSwapOutput(
+        address userAddress,
+        address pairAddress,
         address outputTokenAddress,
         uint outputAmount,
         uint maxToken
-    ) public returns (uint) {
+    ) public returns (bool) {
+        Pool pair = Pool(pairAddress);
+
         (uint112 reserve0, uint112 reserve1) = pair.getReserves();
+
         uint inputAmount;
         if (outputTokenAddress == pair.token0()) {
             inputAmount = getAmountIn(outputAmount, reserve1, reserve0);
@@ -107,7 +119,12 @@ contract Swap {
         uint maxAmountWithSlippage = (inputAmount * 1005) / 1000;
         require(maxAmountWithSlippage <= maxToken, "EXCESSIVE_INPUT_AMOUNT");
 
-        return inputAmount;
+        if (tokenAddress == pair.token0()) {
+            swap(userAddress, inputAmount, 0, pairAddress);
+        }else {
+            swap(userAddress, 0, inputAmount, pairAddress);
+        }
+        return true;
     }
 
     function getAmountIn(
@@ -127,7 +144,7 @@ contract Swap {
         return amountIn;
     }
 
-    function swap(uint amount0Out, uint amount1Out, address to) external lock {
+    function swap(address userAddress, uint amount0Out, uint amount1Out, address to) external lock {
         // output 이 둘 중에 하나는 0 보다 커야함
         require(amount0Out > 0 || amount1Out > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
 
@@ -149,8 +166,8 @@ contract Swap {
             // if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
 
             // 현재 잔액
-            balance0 = IERC20(_token0).balanceOf(address(this));
-            balance1 = IERC20(_token1).balanceOf(address(this));
+            balance0 = Token(_token0).balanceOf(pairAddress);
+            balance1 = Token(_token1).balanceOf(pairAddress);
         }
         // 사용자가 token0을 유동성 풀에 추가했을 때만 amount0In을 계산 아니면 0
         uint amount0In = balance0 > _reserve0 - amount0Out
@@ -196,16 +213,17 @@ contract Swap {
         //         liquidity;
             // userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
             // userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
-        }
+        
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        emit Swap(userAddress, amount0In, amount1In, amount0Out, amount1Out, pairAddress);
 
         // Volume 누적시키기
         volumePerTransaction0[block.timestamp] = amount0In;
         volumePerTransaction0[block.timestamp] += amount0Out;
         volumePerTransaction1[block.timestamp] = amount1In;
         volumePerTransaction1[block.timestamp] += amount1Out;
+    }
 
     // 토큰 당 totalVolume 계산
     function getTotalVolume(
