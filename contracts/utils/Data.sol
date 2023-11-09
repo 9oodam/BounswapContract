@@ -44,10 +44,25 @@ contract Data {
 
     constructor() {}
 
+    // 확인 필요
+    function allPairsLength() external view returns (uint) {
+        return allPairs.length;
+    }
+
+    // 확인 필요 
+    function addPair(address pairAddress) external {
+        allPairs.push(pairAddress);
+    }
+
     // 확인 필요 임의로 추가함
     // validatorPoolArr 반환
     function getValidatorPoolArr(address to) public view returns (address[] memory) {
         return validatorPoolArr[to];
+    }
+
+    // 확인 필요 임의로 추가함
+    function validatorPoolArrLength(address validator) public view returns (uint256) {
+        return validatorPoolArr[validator].length;
     }
 
     // 확인 필요 임의로 추가함
@@ -105,7 +120,11 @@ contract Data {
     function getUnclaimedFee(address validator, address pairAddress) public returns (uint256, uint256) {
         return (userUnclaimedFee[validator][pairAddress].token0FeeAmount, userUnclaimedFee[validator][pairAddress].token1FeeAmount);
     }
-
+    
+    // 확인 필요 userUnclaimedFee 초기화 
+    function setUnclaimedFee(address validator, address pairAddress, uint256 amount0, uint256 amount1) public {
+        userUnclaimedFee[validator][pairAddress] = UnclaimedFeeData(amount0, amount1);
+    }
 
     // 모든 토큰 주소 배열
     function getAllTokenAddress() public view returns (address[] memory) {

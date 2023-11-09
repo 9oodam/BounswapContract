@@ -19,7 +19,8 @@ contract Factory {
     constructor(address _dataAddress, address _feeToSetter) public {
         feeToSetter = _feeToSetter;
         dataAddress = _dataAddress;
-        dataParams = new Data(_dataAddress);
+        // dataParams = new Data(_dataAddress);
+        dataParams = Data(_dataAddress);
     }
 
     function createPair(address tokenA, address tokenB) external returns (address pair) {
@@ -29,7 +30,8 @@ contract Factory {
         require(getPair[token0][token1] == address(0), 'pair already exists');
 
         // token0, 1로 새로운 pair 주소 생성 & create2로 contract 배포
-        bytes memory bytecode = type(Pool).creationCode;
+        // bytes memory bytecode = type(Pool).creationCode;
+        bytes memory bytecode = getCreationCode();
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
@@ -42,15 +44,16 @@ contract Factory {
         string memory symbolB = Token(tokenB).symbol();
         string memory combinedName = string(abi.encodePacked(nameA, "-", nameB));
         string memory combinedSymbol = string(abi.encodePacked(symbolA, symbolB));
-        Pool(pair).initialize(dataAddress, token0, token1, combinedName, combinedSymbol);
+        // Pool(pair).initialize(dataAddress, token0, token1, combinedName, combinedSymbol);
+        Pool(pair).initialize(token0, token1, combinedName, combinedSymbol);
 
         // getPair에 pair 주소 저장
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair;
         // Data.sol allPairs 배열에 추가
-        dataParams.allPairs.push(pair);
+        dataParams.addPair(pair);
 
-        emit PairCreated(token0, token1, pair, dataParams.allPairs.length);
+        emit PairCreated(token0, token1, pair, dataParams.allPairsLength());
     }
 
     // 공급자가 가지고 있는 pool 배열
@@ -58,8 +61,10 @@ contract Factory {
         address pair = getPair[tokenA][tokenB];
         // 이미 있으면 중복 안되게, 삭제되면 pop
         bool isDuplicated = false;
-        for(uint i=0; i<dataParams.validatorPoolArr[msg.sender].length; i++) {
-            if(dataParams.validatorPoolArr[msg.sender][i] == pair) {
+        for(uint i=0; i<dataParams.validatorPoolArrLength(msg.sender); i++) {
+        // for(uint i=0; i<dataParams.validatorPoolArr[msg.sender].length; i++) {
+            // if(dataParams.validatorPoolArr[msg.sender][i] == pair) {
+            if(dataParams.getValidatorPoolArr(msg.sender)[i] == pair) {
                 isDuplicated == true;
                 break;
             }
@@ -68,7 +73,11 @@ contract Factory {
         dataParams.validatorPoolArr[msg.sender].push(pair);
     }
 
-
+    // 확인 필요 
+    // type(Pool).creationCode 부분 에러나서 작성
+    function getCreationCode() public pure returns (bytes memory) {
+        return type(Pool).creationCode;
+    }
 
     function setFeeTo(address _feeTo) external {
         require(msg.sender == feeToSetter, 'FORBIDDEN');

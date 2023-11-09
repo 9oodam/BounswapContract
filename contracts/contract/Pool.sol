@@ -181,8 +181,9 @@ abstract contract Pool is Token {
         require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
         Token(token0).transfer(validator, token0FeeAmount);
         Token(token1).transfer(validator, token1FeeAmount);
-        Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount = 0;
-        Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount = 0;
+        Data(dataAddress).setUnclaimedFee(validator, address(this), 0, 0);
+        // Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount = 0;
+        // Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount = 0;
         return true;
     }
 
