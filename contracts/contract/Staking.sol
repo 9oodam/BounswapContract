@@ -3,17 +3,17 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Staking is Ownable {
+contract Staking is Ownable { // Ownable 공뷰 필요
 
     struct UserInfo {
         uint256 amount;
-        uint256 exactReward;
+        uint256 exactRewardCal;
         uint256 pendingReward;
     }
 
     struct PoolInfo {
-        ????? lptoken // lp 토큰 주소 넣어야 함
-        uint256 allocPoint; // 넣을지 뺼지 결정해야 함. (기획)
+        ????? lpToken // lp 토큰 주소 넣어야 함
+        uint256 allocPoint; 
         uint256 lastRewardBlock; 
         uint256 accBNCPerShare;
     }
@@ -28,18 +28,17 @@ contract Staking is Ownable {
     uint256 public dev3Percent;
     uint256 public dev4Percent;
 
-    uint256 public dev0Addr;
-    uint256 public dev1Addr;
-    uint256 public dev2Addr;
-    uint256 public dev3Addr;
-    uint256 public dev4Addr;
+    address public dev0Addr;
+    address public dev1Addr;
+    address public dev2Addr;
+    address public dev3Addr;
+    address public dev4Addr;
 
     uint256 public BNCPerBlock; 
 
-    uint256 public BONUS_MULTIPLIER = 1;
+    uint256 public BONUS_MULTIPLIER = 1; 
 
     uint256 public lastDevBlockWithdraw;
-
 
     PoolInfo[] public poolInfo;
 
@@ -103,7 +102,7 @@ contract Staking is Ownable {
         return poolInfo.length;
     }
     
-    // 개발자가 쌓인 수수료 출금
+    // 이 함수를 호출할 때마다 설정한 Percent만큼 민팅되어 각각의 개발자 주소에 저장됌
     function withdrawDevFee() public {
         require(lastBlockDevWithdraw < block.number, "wait for new block");
         BNCReward = (block.number - lastBlockDevWithdraw).mul(BNCPerBlock);
@@ -118,17 +117,31 @@ contract Staking is Ownable {
     }
 
     // 소유자가 스테이킹 풀 생성
-    function add(uint256 _allocPoint, ???? _lptoken) public onlyOwner {
-        _checkPoolDuplicate(_lptoken);
-
-
+    function addStakingPool (uint256 _allocPoint, ???? _lpToken) public onlyOwner {
+        // 동일한 LP토큰이 있는지 검사
+        _checkPoolDuplicate(_lpToken);
+        // 전체 스테이킹 풀 업데이트
+        massUpdatePools();
+        // 마지막 보상 블록을 현재 블록 번호와 시작 블록 중 더 큰 값으로 설정
+        uint256 lastRewardBlock = block.number < startBlock ? startBlock : block.number;
+        // 총 할당 포인트에 이 풀에 대한 할당 포인트를 추가
+        uint256 totalAllocPoint = totalAllocPoint.add(_accocPoint);
+        // PoolInfo에 push
+        poolInfo.push(
+            PoolInfo({
+                lpToken = _lpToken,
+                allocPoint = _allocPoint,
+                lastRewardBlock = lastRewardBlock,
+                accBNCPerShare = 0; // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
+            })
+        );
     }
 
-    // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지
-    function _checkPoolDuplicate(???? _lptoken) view internal {
+    // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지, pid = Pool ID
+    function _checkPoolDuplicate(???? _lpToken) view internal {
         uint256 length == poolInfo.length;
         for(uint256 pid = 0; pid < length; ++pid) {
-            require(poolInfo[pid].lptoken != _lptoken, "pool existed");
+            require(poolInfo[pid].lpToken != _lpToken, "pool existed");
         }
     }
 
@@ -149,21 +162,175 @@ contract Staking is Ownable {
             return;
         }
         // Pool에 스테이킹된 LP토큰의 총 잔액을 가져옴
-        uint256 lpSupply = pool.lptoken.balanceOf(address(this));
+        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         // Pool에 스테이킹된 LP토큰이 없다면 lastRewardBlock를 현재 블록으로 업데이트하고 종료
         if(lpSupply <= 0) {
             pool.lastRewardBlock = block.number;
             return;
         }
-        
-        // multiplier 관련 개념 다시 정의하고 작성
-
+        // lastRewardBlock을 통해 해당 풀에 대한 보상이 마지막으로 처리된 시점을 추적
+        uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+        // BNCReward 계산, BNCPerBlock * allocPoint / totalAllocPoint * stakingPercent / percentDec
+        uint256 BNCReward = multiplier.mul(BNCPerBlock).mul(pool.allocPoint).div(totalAllocPoint).mul(stakingPercent).div(percentDec);
+        // 계산된 BNCReward를 사용자에게 분배하기 위해 CA 자체에 민팅.
+        BNC.mint(address(this), BNCReward);
+        // 풀에 누적된 LC 당 주식을 업데이트(각 LP토큰이 받을 수 있는 BNC의 양)
+        // 솔리디티는 소수점을 지원하지 않기 때문에 1e12로 확장하여 소수점 이하의 BNC 토큰도 계산할 수 있게 한다.
+        pool.accBNCPerShare = pool.accBNCPerShare.add(BNCReward.mul(1e12).div(lpSupply));
+        // lastRewardBlock를 현재 블록 번호로 업데이트
+        pool.lastRewardBlock = block.number;
     }
 
+    // 보상을 계산하기 위해 사용, _from과 _to는 블록 범위
+    function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+        return _to.sub(_from).mul(BONUS_MULTIPLIER);
+    }
 
+    // 해당 풀의 BNC 할당 점수 업데이트 (오너가)
+    function set(uint256 _pid, uint256 _allocPoint) public onlyOwner validPool(_pid) {
+        massUpdatePools();
+        // 총 할당 점수 - 현재 할당 점수 +  할당 점수
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        
+        poolInfo[_pid].allocPoint = _allocPoint;
+    }
+    
+    // 프론트엔드에서 사용자가 보상으로 쌓인 BNC 조회
+    function pendingBNC(uint256 _pid, address _user) public view vaildPool(_pid) returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+        uint256 accBNCPerShare = pool.accBNCPerShare;
+        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
+
+        // 현재 블록 번호가 풀의 마지막 보상 블록보다 크고, LP 토큰의 공급량이 0이 아닌 경우 누적된 BNC당 주식(accLCPerShare) 업데이트
+        if(block.number > pool.lastRewardBlock && lpSupply != 0) {
+            uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+            uint256 BNCReward = multiplier.mul(BNCPerBlock).mul(pool.allocPoint).div(totalAllocPoint).mul(stakingPercent).div(percentDec);
+            accBNCPerShare = accBNCPerShare.add(BNCReward.mul(1e12).div(lpSupply));
+        }
+        return user.pendingReward.add(user.amount.mul(accBNCPerShare).div(1e12).sub(user.exactRewardCal));
+    }
+
+    // 사용자가 풀에서 자신의 몫을 정확하게 받도록 하게 하는 함수
+    function addPendingBNC(uint256 _pid, address _user) internal validPool (_pod) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+        // 사용자가 받을 미지급 BNC양 계산
+        uint256 pending = user.amount.mul(pool.accBNCPerShare).div(1e12).sub(user.exactRewardCal);
+        // 만약 미지급 BNC가 0보다 크면(사용자가 보상을 받을 잔여 BNC가 있다면)
+        if (pending > 0 ) {
+            // 해당 사용자 스토리지에 추가
+            user.pendingReward = user.pendingReward.add(pending);
+        }
+    }
+    
+    // LP토큰 예치 
+    function deposit(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        updatePool(_pid);
+        addPendingBNC(_pid, msg.sender); // 미지급 BNC가 있다면 업데이트
+
+        // 실제로 예치할 금액이 있으면, 이전후 잔고 업데이트
+        if(_amount > 0) {
+            pool.lpToken.transferFrom(address(msg.sender), address(this), _amount);
+            user.amount = user.amount.add(_amount);
+        }
+
+        // 사용자 보상 부채 업데이트
+        user.exactRewardCal = user.amount.mul(pool.accBNCPerShare).div(1e12);
+        // 누가 어느 풀에 얼마를 기록했는지 
+        emit Deposit(msg.sender, _pid, _amount);
+    }
+
+    // 일반 출금
+    function withdraw(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        require(user.amount >= _amount, "withdraw: not good");
+        updatePool(_pid);
+        addPengdingBNC(_pid, msg.sender);
+
+        if(_amount > 0) {
+            user.amount = user.amount.sub(_amount);
+            pool.lpToken.transfer(address(msg.sender), _amount);
+        }
+        user.exactRewardCal = user.amount.mul(pool.accBNCPerShare).div(1e12);
+        
+        emit Withdraw(msg.sender, _pid, _amount);
+    }
+
+    // 긴급 전부 출금 (탈주 닌자 처리 필요)
+    function emergencyWithdraw (uint256 _pid) public nonReentrant vaildPool (_pid) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+
+        pool.lpToken.transfer(address(msg.sender), user.amount);
+        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+
+        // 탈주에 대한 리워드, 수정 필요
+        user.amount = ???; 
+        user.exactRewardCal;
+        user.pendingReward = ???;
+    }
+
+    // 안전 장치 (claimBNC에서 딱 1번 사용)
+    function safeBNCTransfer(address _to, uint256 _amount) internal {
+        uint256 BNCBal= BNC.balanceOf(address(this));
+        // 잔액이 유저가 요청한 잔액보다 부족할 경우 CA에 있는 잔액 전부 해당 유저에게 송금
+        if (_amount > BNCBal) {
+            BNC.transfer(_to, BNCBal);
+        } else {
+            BNC.transfer(_to, _amount);
+        }
+    }
+
+    // 쌓인 보상 청구 (스테이킹으로 얻은 보상만 청구)
+    function claimBNC(uint256 _pid) public nonReetrant valiPool(_pid) {
+        updatePool(_pid);
+        addPendingBNC(_pid, msg.sender);
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        // 유저가 청구할 수 있는 쌓인 보상이 있다면
+        if(user.pendingReward > 0) {
+            uint256 amount = user.pendingReward;
+            user.pendingReward = 0; 
+            safeBNCTransfer(msg.sender, amount);
+            
+            emit ClaimBNC(msg.sender, _pid, amount);
+        }
+    }
+
+    // 개발자 주소 세팅 (오너가)
+    function setDevAddress(address _dev0Addr, address _dev1Addr, address _dev2Addr, address _dev3Addr, address _dev4Addr) public onlyOwner {
+        require(_dev0Addr != address(0) && _dev1Addr != address(0) && _dev2Addr != address(0) && _dev3Addr != address(0) && _dev4Addr != address(0), "Zero");
+        dev0Addr = _dev0Addr;
+        dev1Addr = _dev1Addr;
+        dev2Addr = _dev2Addr;
+        dev3Addr = _dev3Addr;
+        dev4Addr = _dev4Addr;
+        emit SetDev012Address(dev0Addr, dev1Addr, dev2Addr);
+        emit SetDev34Address(dev3Addr, dev4Addr)
+    }
+
+    // 블록 당 보상 생성 속도 정의 (오너가)
+    function updateBNCPerBlock (uint256 newAmount) public onlyOwner {
+        // 한 블록당 최대 생성 100
+        require(newAmount <= 100 * 1e18, "Max per block 100 BNC");
+        require(newAmount >= 1 * 1e15, "Min per block 0.001 BNC");
+        BNCperBlock = newAmount;
+        emit UpdateBNCPerBlock(BNCperBlock);
+    }
+
+    // 각각의 주체가 받을 퍼센트 정의 (오너가)
+    function setPercent (uint256 _stakingPercent, uint256 _dev0Percent, uint256 _dev1Percent, uint256 _dev2Percent, uint256 _dev3Percent, uint256 _dev4Percent) public onlyOwner {
+        uint256 devPercent = _dev0Percent.add(_dev1Percent).add(_dev2Percent).add(_dev3Percent).add(_dev4Percent);
+        require(_stakingPercent.add(devPercent) <= percentDec, "Percent Sum");
+        stakingPercent = _stakingPercent;
+        dev0Percent = _dev0Percent;
+        dev1Percent = _dev0Percent;
+        dev2Percent = _dev0Percent;
+        dev3Percent = _dev0Percent;
+        dev4Percent = _dev0Percent;
+        emit SetPercent(stakingPercent, dev0Percent, dev1Percent, dev2Percent, dev3Percent, dev4Percent);
+    }
 }
-
-
-
-// LP토큰을 스테이킹하여 자체토큰 BNC를 보상을 받는다.
-// 자체 BNC토큰 단일 페어 스테이킹하여 BNC토큰을 보상 받는다.
