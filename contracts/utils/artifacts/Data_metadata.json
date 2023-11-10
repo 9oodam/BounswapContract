@@ -1,0 +1,821 @@
+{
+	"compiler": {
+		"version": "0.8.20+commit.a1b79de6"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "addPair",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pair",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					}
+				],
+				"name": "addValidatorArr",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "pool",
+						"type": "address"
+					}
+				],
+				"name": "addValidatorPoolArr",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "allPairs",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "allPairsLength",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "allTokens",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "blockTimeStamp",
+						"type": "uint32"
+					}
+				],
+				"name": "blockNumbers",
+				"outputs": [
+					{
+						"internalType": "uint32",
+						"name": "blockNumber",
+						"type": "uint32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllPairAddress",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllPools",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "pairAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tvl",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.PoolDetail[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllTokenAddress",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllTokens",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "tokenAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "name",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "uri",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tvl",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.TokenDetail[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "timeStampNow",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint32",
+						"name": "timeStampBefore",
+						"type": "uint32"
+					}
+				],
+				"name": "getBlockNumber",
+				"outputs": [
+					{
+						"internalType": "uint32[]",
+						"name": "",
+						"type": "uint32[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "getEachPool",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "pairAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tvl",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.PoolDetail",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "tokenAddress",
+						"type": "address"
+					}
+				],
+				"name": "getEachToken",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "tokenAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "name",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "uri",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tvl",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.TokenDetail",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "getUnclaimedFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "getUnclaimedFee",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "token0FeeAmount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "token1FeeAmount",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.UnclaimedFeeData",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "getUserPoolDetail",
+				"outputs": [
+					{
+						"components": [
+							{
+								"components": [
+									{
+										"internalType": "address",
+										"name": "pairAddress",
+										"type": "address"
+									},
+									{
+										"internalType": "string",
+										"name": "token0Uri",
+										"type": "string"
+									},
+									{
+										"internalType": "string",
+										"name": "token1Uri",
+										"type": "string"
+									},
+									{
+										"internalType": "string",
+										"name": "token0Symbol",
+										"type": "string"
+									},
+									{
+										"internalType": "string",
+										"name": "token1Symbol",
+										"type": "string"
+									},
+									{
+										"internalType": "uint256",
+										"name": "tvl",
+										"type": "uint256"
+									}
+								],
+								"internalType": "struct Data.PoolDetail",
+								"name": "pooldetail",
+								"type": "tuple"
+							},
+							{
+								"internalType": "uint256",
+								"name": "token0Amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "token1Amount",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.MyPoolDetail",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getUserPools",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "pairAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Uri",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token0Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "token1Symbol",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tvl",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Data.PoolDetail[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pair",
+						"type": "address"
+					}
+				],
+				"name": "getValidatorArr",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "getValidatorPoolArr",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1",
+						"type": "uint256"
+					}
+				],
+				"name": "setUnclaimedFee",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pair",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					}
+				],
+				"name": "subValidatorArr",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "pool",
+						"type": "address"
+					}
+				],
+				"name": "subValidatorPoolArr",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"name": "userUnclaimedFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "token0FeeAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "token1FeeAmount",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "validatorArr",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "validatorPoolArr",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "pairAddress",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "validator",
+						"type": "address"
+					}
+				],
+				"name": "validatorPoolArrLength",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/utils/Data.sol": "Data"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/contract/Factory.sol": {
+			"keccak256": "0x2d55436e266a215139189c088cd0e23058ed15576c96672c2e70c358938785ea",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8c33944a1657ef685d0903501cb6f62e29107206ac679756d5e955aad8f7ddb8",
+				"dweb:/ipfs/QmdyvW39R9cGWkd53vfJdC1ftzKjKBqTCcGfiSjTvjZZQL"
+			]
+		},
+		"contracts/contract/Pool.sol": {
+			"keccak256": "0xedaa8389f8775bd1036a375dad81986ba6d7844dab7fc14a8625e8a8f4a47ddd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d0d7c47577bc7269e2a57813d0fdd2c824104a14a138db4522e4b6a6af298204",
+				"dweb:/ipfs/QmUVq6BMJPrDvWBC7M99VVMUZZEXYLnUnELmYUaUJvTDD1"
+			]
+		},
+		"contracts/contract/Token.sol": {
+			"keccak256": "0x02c719255cd622b770b19345f443ea71d9bb5e6257789369079c380c59a92bd0",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://07278685f346353cdbe3156a83e25769f808cee485b7c4c0401e9d316bb055c3",
+				"dweb:/ipfs/QmQ8ZCGQQXrEKv4ZCp62oVyhovEf7ypKyw5nsf8Dwdp7hx"
+			]
+		},
+		"contracts/interfaces/IERC20.sol": {
+			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
+				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+			]
+		},
+		"contracts/libraries/Math.sol": {
+			"keccak256": "0x53158ad394e57efd1bbf1835c1ca172e4abfa1a6153f45fb606b01b68440029a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bbd724ac860d4cf41d8f14c910043402dc997b6912ca1cef2fc0ea77f36db3db",
+				"dweb:/ipfs/QmSRmEpW9p7RU92twSFDJPJB4K55kjiBvTr8oDtQ2iG4sE"
+			]
+		},
+		"contracts/libraries/SafeMath.sol": {
+			"keccak256": "0xaac4b9f7bd0de5f6a6fd85eeb702d7c2fe5e56d5a5f42eeab5ac58e6551e2eb5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bb710ceb45e919970dab8d93456de99e3fc807cbd57b27ffb53e1d68fa95d893",
+				"dweb:/ipfs/QmTmEnagxBERjDTHbkg3ENpH7VbphQpjwdtb7ZyKvwMYBW"
+			]
+		},
+		"contracts/utils/Data.sol": {
+			"keccak256": "0x7290880a665e33d0063e16da8732c3868ab7a9463a1d0ca63920fb1b608199a2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://9ffa0ae58311ea21a2be3ad69b9d907be9ed38c8cf5ce955160ee0e7a750a776",
+				"dweb:/ipfs/QmNQb8ozeUmkneZnbqdaCMPDVxfhgvKuv5GJY22G3AGYyk"
+			]
+		}
+	},
+	"version": 1
+}

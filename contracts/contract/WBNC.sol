@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import './Token.sol';
+import "./Token.sol";
 
 contract WBNC is Token {
     event Deposit(address indexed from, uint256 amount);
