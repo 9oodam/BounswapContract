@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "../interfaces/IERC20.sol";
 
-abstract contract Token is IERC20 {
+contract Token is IERC20 {
 
     string public name;
     string public symbol;
@@ -15,7 +16,7 @@ abstract contract Token is IERC20 {
     mapping (address => uint) public balances;
     mapping (address => mapping (address => uint)) public allowances;
 
-    constructor(string memory _name, string memory _symbol, string memory _uri, uint _amount) {
+    constructor(string memory _name, string memory _symbol,  uint _amount, string memory _uri) {
         name = _name;
         symbol = _symbol;
         uri = tokenURI(_uri);
@@ -63,6 +64,13 @@ abstract contract Token is IERC20 {
         return true;
     }
 
+    // function transferFrom(address from, address from1, address to, uint value) public returns (bool) {
+    //     require(allowances[from][msg.sender] >= value);
+    //     allowances[from][msg.sender] -= value;
+    //     balances[from] -= value;
+    //     balances[to] += value;
+    //     return true;
+    // }
 
     function allowance(address owner, address spender) public view returns (uint256) {
         return allowances[owner][spender];
