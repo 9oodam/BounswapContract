@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../interfaces/IERC20.sol";
 
 contract Staking is Ownable { // Ownable 공뷰 필요
 
@@ -12,7 +13,7 @@ contract Staking is Ownable { // Ownable 공뷰 필요
     }
 
     struct PoolInfo {
-        ????? lpToken // lp 토큰 주소 넣어야 함
+        IERC20 lpToken; // lp 토큰 주소 넣어야 함
         uint256 allocPoint; 
         uint256 lastRewardBlock; 
         uint256 accBNCPerShare;
@@ -93,38 +94,77 @@ contract Staking is Ownable { // Ownable 공뷰 필요
         dev4Percent = _dev4Percent;
         stakingPercent = _stakingPercent;
         BNCPerBlock = _BNCPerBlock;
-        startBlock = _startBlock;
+        startBlock = _startBlock; // 보상 시작 블록
         lastBlockDevWithdraw = _startBlock; // 개발자가 보상을 받기 위한 첫 블록을 기록
     }
-
-    // LP 풀의 갯수 확인 
-    function poolLength() external view returns (uint256) {
-        return poolInfo.length;
-    }
     
+    // 블록 당 보상 생성 속도 정의 (오너가)
+    function updateBNCPerBlock (uint256 newAmount) public onlyOwner {
+        // 한 블록당 최대 생성 100
+        require(newAmount <= 100 * 1e18, "Max per block 100 BNC");
+        require(newAmount >= 1 * 1e15, "Min per block 0.001 BNC");
+        BNCperBlock = newAmount;
+        emit UpdateBNCPerBlock(BNCperBlock);
+    }
+
+    // 개발자 주소 세팅 (오너가)
+    function setDevAddress(address _dev0Addr, address _dev1Addr, address _dev2Addr, address _dev3Addr, address _dev4Addr) public onlyOwner {
+        require(_dev0Addr != address(0) && _dev1Addr != address(0) && _dev2Addr != address(0) && _dev3Addr != address(0) && _dev4Addr != address(0), "Zero");
+        dev0Addr = _dev0Addr;
+        dev1Addr = _dev1Addr;
+        dev2Addr = _dev2Addr;
+        dev3Addr = _dev3Addr;
+        dev4Addr = _dev4Addr;
+        emit SetDev012Address(dev0Addr, dev1Addr, dev2Addr);
+        emit SetDev34Address(dev3Addr, dev4Addr)
+    }
+
+    // 각각의 주체가 받을 퍼센트 정의 (오너가)
+    function setPercent (uint256 _stakingPercent, uint256 _dev0Percent, uint256 _dev1Percent, uint256 _dev2Percent, uint256 _dev3Percent, uint256 _dev4Percent) public onlyOwner {
+        uint256 devPercent = _dev0Percent.add(_dev1Percent).add(_dev2Percent).add(_dev3Percent).add(_dev4Percent);
+        // percentDec === 100%(10000), stakingPercent + devPercent가 percentDec이하로 설정되어야만 함
+        require(_stakingPercent.add(devPercent) <= percentDec, "Percent Sum");
+        stakingPercent = _stakingPercent;
+        dev0Percent = _dev0Percent;
+        dev1Percent = _dev1Percent;
+        dev2Percent = _dev2Percent;
+        dev3Percent = _dev3Percent;
+        dev4Percent = _dev4Percent;
+        emit SetPercent(stakingPercent, dev0Percent, dev1Percent, dev2Percent, dev3Percent, dev4Percent);
+    }
+
     // 이 함수를 호출할 때마다 설정한 Percent만큼 민팅되어 각각의 개발자 주소에 저장됌
     function withdrawDevFee() public {
         require(lastBlockDevWithdraw < block.number, "wait for new block");
+        // ex) 5 - 3 * 100 = 200
         BNCReward = (block.number - lastBlockDevWithdraw).mul(BNCPerBlock);
-
+        // dev0's BNC = 200 BNC * 2500 / 10000 = 50 BNC
+        // dev1's BNC = 200 BNC * 2500 / 10000 = 50 BNC
+        // dev2's BNC = 200 BNC * 2000 / 10000 = 40 BNC
+        // dev3's BNC = 200 BNC * 1500 / 10000 = 30 BNC
+        // dev4's BNC = 200 BNC * 1500 / 10000 = 30 BNC
         BNC.mint(dev0Addr, BNCReward.mul(dev0Percent).div(percentDec));
         BNC.mint(dev1Addr, BNCReward.mul(dev1Percent).div(percentDec));
         BNC.mint(dev2Addr, BNCReward.mul(dev2Percent).div(percentDec));
         BNC.mint(dev3Addr, BNCReward.mul(dev3Percent).div(percentDec));
         BNC.mint(dev4Addr, BNCReward.mul(dev4Percent).div(percentDec));
-
+        // 보상 받았으니까 현재 블록으로 초기화
         lastBlockDevWithdraw = block.number;
     }
 
-    // 소유자가 스테이킹 풀 생성
-    function addStakingPool (uint256 _allocPoint, ???? _lpToken) public onlyOwner {
+    // 스테이킹 풀 생성 (오너가)
+    function addStakingPool (uint256 _allocPoint, IBEP20 _lpToken) public onlyOwner {
         // 동일한 LP토큰이 있는지 검사
         _checkPoolDuplicate(_lpToken);
         // 전체 스테이킹 풀 업데이트
         massUpdatePools();
         // 마지막 보상 블록을 현재 블록 번호와 시작 블록 중 더 큰 값으로 설정
+        // 이더리움 네트워크에서 생성되고있는 많은 블록중에 스테이킹이 시작된 블록을 설정해야 하기 때문.
         uint256 lastRewardBlock = block.number < startBlock ? startBlock : block.number;
         // 총 할당 포인트에 이 풀에 대한 할당 포인트를 추가
+        // 단 하나의 풀만 생성된다면 그 풀이 100%를 할당받음
+        // 만약 다른 풀이 추가 된다면 그 풀과 할당 포인트를 비교하여 나눠서 받음 
+        // ex) A : 10, B : 20 Total = 30 / A : 10/30 = 33.33% B : 20/30 = 66.67%
         uint256 totalAllocPoint = totalAllocPoint.add(_accocPoint);
         // PoolInfo에 push
         poolInfo.push(
@@ -137,8 +177,20 @@ contract Staking is Ownable { // Ownable 공뷰 필요
         );
     }
 
+    // LP 풀의 갯수 확인 
+    function poolLength() external view returns (uint256) {
+        return poolInfo.length;
+    }
+
+    // 해당 풀의 BNC 할당 점수 업데이트 (오너가)
+    function set(uint256 _pid, uint256 _allocPoint) public onlyOwner validPool(_pid) {
+        massUpdatePools();
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        poolInfo[_pid].allocPoint = _allocPoint;
+    }
+
     // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지, pid = Pool ID
-    function _checkPoolDuplicate(???? _lpToken) view internal {
+    function _checkPoolDuplicate(IBEP20 _lpToken) view internal {
         uint256 length == poolInfo.length;
         for(uint256 pid = 0; pid < length; ++pid) {
             require(poolInfo[pid].lpToken != _lpToken, "pool existed");
@@ -186,15 +238,6 @@ contract Staking is Ownable { // Ownable 공뷰 필요
         return _to.sub(_from).mul(BONUS_MULTIPLIER);
     }
 
-    // 해당 풀의 BNC 할당 점수 업데이트 (오너가)
-    function set(uint256 _pid, uint256 _allocPoint) public onlyOwner validPool(_pid) {
-        massUpdatePools();
-        // 총 할당 점수 - 현재 할당 점수 +  할당 점수
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
-        
-        poolInfo[_pid].allocPoint = _allocPoint;
-    }
-    
     // 프론트엔드에서 사용자가 보상으로 쌓인 BNC 조회
     function pendingBNC(uint256 _pid, address _user) public view vaildPool(_pid) returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
@@ -300,37 +343,5 @@ contract Staking is Ownable { // Ownable 공뷰 필요
         }
     }
 
-    // 개발자 주소 세팅 (오너가)
-    function setDevAddress(address _dev0Addr, address _dev1Addr, address _dev2Addr, address _dev3Addr, address _dev4Addr) public onlyOwner {
-        require(_dev0Addr != address(0) && _dev1Addr != address(0) && _dev2Addr != address(0) && _dev3Addr != address(0) && _dev4Addr != address(0), "Zero");
-        dev0Addr = _dev0Addr;
-        dev1Addr = _dev1Addr;
-        dev2Addr = _dev2Addr;
-        dev3Addr = _dev3Addr;
-        dev4Addr = _dev4Addr;
-        emit SetDev012Address(dev0Addr, dev1Addr, dev2Addr);
-        emit SetDev34Address(dev3Addr, dev4Addr)
-    }
 
-    // 블록 당 보상 생성 속도 정의 (오너가)
-    function updateBNCPerBlock (uint256 newAmount) public onlyOwner {
-        // 한 블록당 최대 생성 100
-        require(newAmount <= 100 * 1e18, "Max per block 100 BNC");
-        require(newAmount >= 1 * 1e15, "Min per block 0.001 BNC");
-        BNCperBlock = newAmount;
-        emit UpdateBNCPerBlock(BNCperBlock);
-    }
-
-    // 각각의 주체가 받을 퍼센트 정의 (오너가)
-    function setPercent (uint256 _stakingPercent, uint256 _dev0Percent, uint256 _dev1Percent, uint256 _dev2Percent, uint256 _dev3Percent, uint256 _dev4Percent) public onlyOwner {
-        uint256 devPercent = _dev0Percent.add(_dev1Percent).add(_dev2Percent).add(_dev3Percent).add(_dev4Percent);
-        require(_stakingPercent.add(devPercent) <= percentDec, "Percent Sum");
-        stakingPercent = _stakingPercent;
-        dev0Percent = _dev0Percent;
-        dev1Percent = _dev0Percent;
-        dev2Percent = _dev0Percent;
-        dev3Percent = _dev0Percent;
-        dev4Percent = _dev0Percent;
-        emit SetPercent(stakingPercent, dev0Percent, dev1Percent, dev2Percent, dev3Percent, dev4Percent);
-    }
 }
