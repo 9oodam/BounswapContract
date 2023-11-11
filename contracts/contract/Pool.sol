@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "./Token.sol";
 import "./Factory.sol";
+import "../utils/Data.sol";
 
 import "../libraries/Math.sol";
 import "../libraries/SafeMath.sol";
@@ -10,6 +11,7 @@ import "../libraries/SafeMath.sol";
 contract Pool is Token {
 
     address public factory;
+    address public dataAddress;
 
     address public token0;
     address public token1;
@@ -18,17 +20,10 @@ contract Pool is Token {
     uint112 private reserve1;
     uint public kLast; // reserve0 * reserve1
 
+    uint32 public blockTimestampLast;
+
     // uint public price0CumulativeLast;
     // uint public price1CumulativeLast;
-
-
-    // 총 발생한 fee
-    mapping (address validator => UnclaimedFeeData) public userUnclaimedFee;
-    struct UnclaimedFeeData {
-        uint256 token0FeeAmount;
-        uint256 token1FeeAmount;
-    }
-
 
     // 실행 안전장치
     uint private unlocked = 1;
@@ -43,19 +38,24 @@ contract Pool is Token {
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    constructor() {
+    constructor(string memory _name, string memory _symbol) Token(_name, _symbol, '', 0) {
         factory = msg.sender;
     }
 
 
     // Factory에서 createPair 실행되면 초기 Pool 생성되는 경우 실행
-    function initialize(address _token0, address _token1, string memory _name, string memory _symbol) external {
+    function initialize(address _token0, address _token1) external {
         require(msg.sender == factory);
         token0 = _token0;
         token1 = _token1;
-        name = _name;
-        symbol = _symbol;
     }
+    // function initialize(address _token0, address _token1, string memory _name, string memory _symbol) external {
+    //     require(msg.sender == factory);
+    //     token0 = _token0;
+    //     token1 = _token1;
+    //     name = _name;
+    //     symbol = _symbol;
+    // }
 
     // 현재 이 pool이 기록하고 있는 토큰량, 최근 블록 타임스탬프 반환
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
@@ -89,7 +89,7 @@ contract Pool is Token {
                 uint rootK = Math.sqrt(SafeMath.mul(uint(_reserve0), _reserve1));
                 uint rootKLast = Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
-                    uint numerator = SafeMath.mul(_totalSupply, SafeMath.sub(rootK, rootKLast));
+                    uint numerator = SafeMath.mul(totalSupply, SafeMath.sub(rootK, rootKLast));
                     uint denominator = SafeMath.add(SafeMath.mul(rootK, 5), rootKLast);
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
@@ -101,23 +101,26 @@ contract Pool is Token {
     }
 
     function mint(address to) external lock returns (bool) {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
+        // (uint112 _reserve0, uint112 _reserve1,) = getReserves();
         uint balance0 = Token(token0).balanceOf(address(this));
         uint balance1 = Token(token1).balanceOf(address(this));
-        uint amount0 = SafeMath.sub(balance0, _reserve0);
-        uint amount1 = SafeMath.sub(balance1, _reserve1);
+        uint amount0 = SafeMath.sub(balance0, reserve0);
+        uint amount1 = SafeMath.sub(balance1, reserve1);
 
-        bool feeOn = _mintFee(_reserve0, _reserve1);
-        if (_totalSupply == 0) {
-            liquidity = SafeMath.sub(Math.sqrt(SafeMath.mul(amount0, amount1)), MINIMUM_LIQUIDITY);
+        // bool feeOn = _mintFee(_reserve0, _reserve1);
+        bool feeOn = _mintFee(reserve0, reserve1);
+        uint liquidity;
+        if (totalSupply == 0) {
+            liquidity = SafeMath.sub(Math.sqrt(SafeMath.mul(amount0, amount1)), 10**3);
            _mint(address(0), 10**3); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min(SafeMath.mul(amount0, _totalSupply) / _reserve0, SafeMath.mul(amount1, _totalSupply) / _reserve1);
+            liquidity = Math.min(SafeMath.mul(amount0, totalSupply) / reserve0, SafeMath.mul(amount1, totalSupply) / reserve1);
         }
         require(liquidity > 0, 'INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
+        Data(dataAddress).addValidatorArr(address(this), to);
 
-        _update(balance0, balance1, _reserve0, _reserve1);
+        _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
 
@@ -125,30 +128,36 @@ contract Pool is Token {
     }
 
     function burn(address to, uint percentage) external lock returns (bool) {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
-        address _token0 = token0;                                
-        address _token1 = token1;                                
-        uint balance0 = Token(_token0).balanceOf(address(this));
-        uint balance1 = Token(_token1).balanceOf(address(this));
-        uint liquidity = balanceOf(address(this)); // pair 가 가지고 있는 Lp
+        // (uint112 _reserve0, uint112 _reserve1,) = getReserves();
+        // address _token0 = token0;                                
+        // address _token1 = token1;                                
+        uint balance0 = Token(token0).balanceOf(address(this));
+        uint balance1 = Token(token1).balanceOf(address(this));
+        uint liquidity = balances[address(this)]; // pair 가 가지고 있는 Lp
 
-        bool feeOn = _mintFee(_reserve0, _reserve1);
+        bool feeOn = _mintFee(reserve0, reserve1);
 
         uint userLiquidity = (liquidity * percentage) / 100; // 사용자가 원하는 비율로 소각
         require(userLiquidity > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
 
         // 사용자에게 돌려줄 토큰의 양
-        amount0 = SafeMath.mul(userLiquidity, balance0) / _totalSupply; 
-        amount1 = SafeMath.mul(userLiquidity, balance1) / _totalSupply; 
+        uint amount0 = SafeMath.mul(userLiquidity, balance0) / totalSupply; 
+        uint amount1 = SafeMath.mul(userLiquidity, balance1) / totalSupply; 
 
         require(amount0 > 0 && amount1 > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), userLiquidity);
-        _safeTransfer(_token0, to, amount0);
-        _safeTransfer(_token1, to, amount1);
-        balance0 = Token(_token0).balanceOf(address(this));
-        balance1 = Token(_token1).balanceOf(address(this));
+        Token(token0).transfer(to, amount0);
+        Token(token1).transfer(to, amount1);
+        balance0 = Token(token0).balanceOf(address(this));
+        balance1 = Token(token1).balanceOf(address(this));
 
-        _update(balance0, balance1, _reserve0, _reserve1);
+        // 유동성을 모두 제거하는 경우 
+        if(percentage == 100) {
+            Data(dataAddress).subValidatorPoolArr(to, address(this)); // 공급자가 가지고있는 pool 배열에서 삭제
+            Data(dataAddress).subValidatorArr(address(this), to); // pool의 공급자 배열에서 삭제
+        }
+
+        _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
         emit Burn(msg.sender, amount0, amount1, to);
 
@@ -156,38 +165,38 @@ contract Pool is Token {
     }
 
 
-    // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee() public returns (UnclaimedFeeData memory) {
-        return userUnclaimedFee[msg.sender];
-    }
-
     // 미청구 수수료 청구하는 함수
-    function claimFee() public returns (bool) {
-        // 누적된 미청구 수수료가 0 이상 있어야 함
-        uint256 token0Amount = userUnclaimedFee[msg.sender].token0Amount;
-        uint256 token1Amount = userUnclaimedFee[msg.sender].token1Amount;
-        require(token0Amount > 0 || token1Amount > 0);
+    function claimFee(address validator) public returns (bool) {
 
-        Token(token0).transfer(msg.sender, token0Amount);
-        Token(token1).transfer(msg.sender, token1Amount);
-        userUnclaimedFee[msg.sender].token0Amount = 0;
-        userUnclaimedFee[msg.sender].token1Amount = 0;
+        // uint256 token0FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount;
+        // uint256 token1FeeAmount = Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount;
+        (uint256 token0FeeAmount, uint256 token1FeeAmount) = Data(dataAddress).getUnclaimedFee(validator, address(this));
+        
+        // 누적된 미청구 수수료가 0 이상 있어야 함
+        require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
+        Token(token0).transfer(validator, token0FeeAmount);
+        Token(token1).transfer(validator, token1FeeAmount);
+        Data(dataAddress).setUnclaimedFee(validator, address(this), 0, 0);
+        // Data(dataAddress).userUnclaimedFee[validator][address(this)].token0FeeAmount = 0;
+        // Data(dataAddress).userUnclaimedFee[validator][address(this)].token1FeeAmount = 0;
         return true;
     }
 
     // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
-    // function getUserLiquidity(address validator) public view returns (Data memory) {
-    //     // lptoken 개수로 token0, token1 예치량 역계산
-
-    //     return ();
-    // }
+    function getUserLiquidity(address validator) public view returns (uint256, uint256) {
+        // lptoken 개수로 token0, token1 예치량 역계산
+        uint256 lpTokenAmount = balances[validator];
+        uint256 amount0 = SafeMath.mul(lpTokenAmount, reserve0) / totalSupply; 
+        uint256 amount1 = SafeMath.mul(lpTokenAmount, reserve1) / totalSupply; 
+        return (amount0, amount1);
+    }
 
 
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, SafeMath.sub(Token(_token0).balanceOf(address(this)), reserve0));
-        _safeTransfer(_token1, to, SafeMath.sub(Token(_token1).balanceOf(address(this)), reserve1));
+        // _safeTransfer(_token0, to, SafeMath.sub(Token(_token0).balanceOf(address(this)), reserve0));
+        // _safeTransfer(_token1, to, SafeMath.sub(Token(_token1).balanceOf(address(this)), reserve1));
     }
 
     function sync() external lock {

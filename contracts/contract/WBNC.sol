@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import './Token.sol';
+import "./Token.sol";
 
 contract WBNC is Token {
     event Deposit(address indexed from, uint256 amount);
@@ -11,16 +11,14 @@ contract WBNC is Token {
     constructor(string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
     }
 
-    function deposit(uint value, address pairAddress) public virtual {
-        _mint(address(this), value);
-        address(this).transfer(pairAddress, value);
+    function deposit(uint value, address userAddress) public virtual {
+        _mint(userAddress, value);
 
         emit Deposit(msg.sender, msg.value);
     }
 
-    function withdraw(address pairAddress, uint256 amount) public virtual {
-        pairAddress.transfer(address(this), bncAmount);
-        _burn(address(this), amount);
+    function withdraw(uint256 amount) public virtual {
+        _burn(msg.sender, amount);
 
         emit Withdrawal(msg.sender, amount);
     }
