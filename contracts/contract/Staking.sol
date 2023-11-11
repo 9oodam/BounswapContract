@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IERC20.sol";
 
-contract Staking is Ownable { // Ownable 공뷰 필요
+contract Staking is Ownable { // Ownable 공부 필요
 
     struct UserInfo {
         uint256 amount;
@@ -342,6 +342,4 @@ contract Staking is Ownable { // Ownable 공뷰 필요
             emit ClaimBNC(msg.sender, _pid, amount);
         }
     }
-
-
 }
