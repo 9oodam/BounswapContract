@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IERC20.sol";
 
-contract Staking is Ownable { // Ownable 공부 필요
+contract Staking is Ownable { 
 
     struct UserInfo {
         uint256 amount;
@@ -13,7 +13,7 @@ contract Staking is Ownable { // Ownable 공부 필요
     }
 
     struct PoolInfo {
-        IERC20 lpToken; // lp 토큰 주소 넣어야 함
+        IERC20 lpToken;
         uint256 allocPoint; 
         uint256 lastRewardBlock; 
         uint256 accBNCPerShare;
@@ -222,9 +222,9 @@ contract Staking is Ownable { // Ownable 공부 필요
         }
         // lastRewardBlock을 통해 해당 풀에 대한 보상이 마지막으로 처리된 시점을 추적
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        // BNCReward 계산, BNCPerBlock * allocPoint / totalAllocPoint * stakingPercent / percentDec
+        // BNCReward 계산(차례대로 계산됌), BNCPerBlock * allocPoint / totalAllocPoint * stakingPercent / percentDec
         uint256 BNCReward = multiplier.mul(BNCPerBlock).mul(pool.allocPoint).div(totalAllocPoint).mul(stakingPercent).div(percentDec);
-        // 계산된 BNCReward를 사용자에게 분배하기 위해 CA 자체에 민팅.
+        // 계산된 BNCReward를 사용자에게 분배하기 위해 CA 자체에 민팅. ???
         BNC.mint(address(this), BNCReward);
         // 풀에 누적된 LC 당 주식을 업데이트(각 LP토큰이 받을 수 있는 BNC의 양)
         // 솔리디티는 소수점을 지원하지 않기 때문에 1e12로 확장하여 소수점 이하의 BNC 토큰도 계산할 수 있게 한다.
@@ -234,6 +234,7 @@ contract Staking is Ownable { // Ownable 공부 필요
     }
 
     // 보상을 계산하기 위해 사용, _from과 _to는 블록 범위
+    // BONUS_MULTIPLIER = 1로 설정되어 있음, 개발의 목적(프로모션, 이벤트 등)에 따라 설정 바꿀 수 있음
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
         return _to.sub(_from).mul(BONUS_MULTIPLIER);
     }
@@ -268,13 +269,14 @@ contract Staking is Ownable { // Ownable 공부 필요
     }
     
     // LP토큰 예치 
+    // nonReentrant : 중복 호출 방지를 위한 안전 장치
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         addPendingBNC(_pid, msg.sender); // 미지급 BNC가 있다면 업데이트
 
-        // 실제로 예치할 금액이 있으면, 이전후 잔고 업데이트
+        // 실제로 예치할 금액이 있으면, 이전 후 잔고 업데이트
         if(_amount > 0) {
             pool.lpToken.transferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
