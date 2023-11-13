@@ -2,10 +2,17 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+import "../libraries/Math.sol";
+import "../libraries/SafeMath.sol";
 import "../interfaces/IERC20.sol";
+import "../utils/Data.sol";
+import "./WBNC.sol";
 
-contract Staking is Ownable { 
-
+contract Staking is Ownable, ReentrancyGuard { 
+    using SafeMath for uint256;
+    
     struct UserInfo {
         uint256 amount;
         uint256 exactRewardCal;
@@ -19,7 +26,8 @@ contract Staking is Ownable {
         uint256 accBNCPerShare;
     }
     
-    ????? public BNC; // BNC로 보상받게 해야함, WBNC 로직 이해 필요
+    WBNC public BNC; // 보상은 BNC로
+    Data public data;
     uint256 public percentDec = 10000;
     uint256 public stakingPercent;
 
@@ -39,13 +47,13 @@ contract Staking is Ownable {
 
     uint256 public BONUS_MULTIPLIER = 1; 
 
-    uint256 public lastDevBlockWithdraw;
+    uint256 public lastBlockDevWithdraw;
 
     PoolInfo[] public poolInfo;
 
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     
-    uint256 public totalocPoint = 0;
+    uint256 public totalAllocPoint = 0;
     uint256 public startBlock;
 
 	// 사용할 이벤트 정리
@@ -66,7 +74,8 @@ contract Staking is Ownable {
     }
 
     constructor(
-        ?????? _BNCToken, 
+        address _BNCToken, 
+        address _data,
         address _dev0Addr, 
         address _dev1Addr, 
         address _dev2Addr, 
@@ -80,8 +89,10 @@ contract Staking is Ownable {
         uint256 _stakingPercent,
         uint256 _BNCPerBlock,
         uint256 _startBlock,
-    ) public {
-        BNC = _BNCToken;
+        address _initialOwner
+    ) Ownable(_initialOwner) public {
+        BNC = WBNC(_BNCToken);
+        data = Data(_data);
         dev0Addr = _dev0Addr;
         dev1Addr = _dev1Addr;
         dev2Addr = _dev2Addr;
@@ -103,8 +114,8 @@ contract Staking is Ownable {
         // 한 블록당 최대 생성 100
         require(newAmount <= 100 * 1e18, "Max per block 100 BNC");
         require(newAmount >= 1 * 1e15, "Min per block 0.001 BNC");
-        BNCperBlock = newAmount;
-        emit UpdateBNCPerBlock(BNCperBlock);
+        BNCPerBlock = newAmount;
+        emit UpdateBNCPerBlock(BNCPerBlock);
     }
 
     // 개발자 주소 세팅 (오너가)
@@ -116,7 +127,7 @@ contract Staking is Ownable {
         dev3Addr = _dev3Addr;
         dev4Addr = _dev4Addr;
         emit SetDev012Address(dev0Addr, dev1Addr, dev2Addr);
-        emit SetDev34Address(dev3Addr, dev4Addr)
+        emit SetDev34Address(dev3Addr, dev4Addr);
     }
 
     // 각각의 주체가 받을 퍼센트 정의 (오너가)
@@ -137,23 +148,23 @@ contract Staking is Ownable {
     function withdrawDevFee() public {
         require(lastBlockDevWithdraw < block.number, "wait for new block");
         // ex) 5 - 3 * 100 = 200
-        BNCReward = (block.number - lastBlockDevWithdraw).mul(BNCPerBlock);
+        uint256 BNCReward = (block.number - lastBlockDevWithdraw).mul(BNCPerBlock);
         // dev0's BNC = 200 BNC * 2500 / 10000 = 50 BNC
         // dev1's BNC = 200 BNC * 2500 / 10000 = 50 BNC
         // dev2's BNC = 200 BNC * 2000 / 10000 = 40 BNC
         // dev3's BNC = 200 BNC * 1500 / 10000 = 30 BNC
         // dev4's BNC = 200 BNC * 1500 / 10000 = 30 BNC
-        BNC.mint(dev0Addr, BNCReward.mul(dev0Percent).div(percentDec));
-        BNC.mint(dev1Addr, BNCReward.mul(dev1Percent).div(percentDec));
-        BNC.mint(dev2Addr, BNCReward.mul(dev2Percent).div(percentDec));
-        BNC.mint(dev3Addr, BNCReward.mul(dev3Percent).div(percentDec));
-        BNC.mint(dev4Addr, BNCReward.mul(dev4Percent).div(percentDec));
+        BNC._mint(dev0Addr, BNCReward.mul(dev0Percent).div(percentDec));
+        BNC._mint(dev1Addr, BNCReward.mul(dev1Percent).div(percentDec));
+        BNC._mint(dev2Addr, BNCReward.mul(dev2Percent).div(percentDec));
+        BNC._mint(dev3Addr, BNCReward.mul(dev3Percent).div(percentDec));
+        BNC._mint(dev4Addr, BNCReward.mul(dev4Percent).div(percentDec));
         // 보상 받았으니까 현재 블록으로 초기화
         lastBlockDevWithdraw = block.number;
     }
 
     // 스테이킹 풀 생성 (오너가)
-    function addStakingPool (uint256 _allocPoint, IBEP20 _lpToken) public onlyOwner {
+    function addStakingPool (uint256 _allocPoint, address _lpToken) public onlyOwner {
         // 동일한 LP토큰이 있는지 검사
         _checkPoolDuplicate(_lpToken);
         // 전체 스테이킹 풀 업데이트
@@ -165,14 +176,14 @@ contract Staking is Ownable {
         // 단 하나의 풀만 생성된다면 그 풀이 100%를 할당받음
         // 만약 다른 풀이 추가 된다면 그 풀과 할당 포인트를 비교하여 나눠서 받음 
         // ex) A : 10, B : 20 Total = 30 / A : 10/30 = 33.33% B : 20/30 = 66.67%
-        uint256 totalAllocPoint = totalAllocPoint.add(_accocPoint);
+        totalAllocPoint = totalAllocPoint.add(_allocPoint);
         // PoolInfo에 push
         poolInfo.push(
             PoolInfo({
-                lpToken = _lpToken,
-                allocPoint = _allocPoint,
-                lastRewardBlock = lastRewardBlock,
-                accBNCPerShare = 0; // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
+                lpToken : _lpToken,
+                allocPoint : _allocPoint,
+                lastRewardBlock : lastRewardBlock,
+                accBNCPerShare : 0 // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
             })
         );
     }
@@ -183,15 +194,15 @@ contract Staking is Ownable {
     }
 
     // 해당 풀의 BNC 할당 점수 업데이트 (오너가)
-    function set(uint256 _pid, uint256 _allocPoint) public onlyOwner validPool(_pid) {
+    function set(uint256 _pid, uint256 _allocPoint) public onlyOwner vaildPool(_pid) {
         massUpdatePools();
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
     }
 
     // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지, pid = Pool ID
-    function _checkPoolDuplicate(IBEP20 _lpToken) view internal {
-        uint256 length == poolInfo.length;
+    function _checkPoolDuplicate(address _lpToken) view internal {
+        uint256 length = poolInfo.length;
         for(uint256 pid = 0; pid < length; ++pid) {
             require(poolInfo[pid].lpToken != _lpToken, "pool existed");
         }
@@ -224,9 +235,9 @@ contract Staking is Ownable {
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         // BNCReward 계산(차례대로 계산됌), BNCPerBlock * allocPoint / totalAllocPoint * stakingPercent / percentDec
         uint256 BNCReward = multiplier.mul(BNCPerBlock).mul(pool.allocPoint).div(totalAllocPoint).mul(stakingPercent).div(percentDec);
-        // 계산된 BNCReward를 사용자에게 분배하기 위해 CA 자체에 민팅. ???
-        BNC.mint(address(this), BNCReward);
-        // 풀에 누적된 LC 당 주식을 업데이트(각 LP토큰이 받을 수 있는 BNC의 양)
+        // 계산된 BNCReward를 사용자에게 분배하기 위해 CA 자체에 민팅. 
+        BNC._mint(address(this), BNCReward);
+        // 풀에 누적된 LC(BNC)당 주식을 업데이트(각 LP토큰이 받을 수 있는 BNC의 양)
         // 솔리디티는 소수점을 지원하지 않기 때문에 1e12로 확장하여 소수점 이하의 BNC 토큰도 계산할 수 있게 한다.
         pool.accBNCPerShare = pool.accBNCPerShare.add(BNCReward.mul(1e12).div(lpSupply));
         // lastRewardBlock를 현재 블록 번호로 업데이트
@@ -256,7 +267,7 @@ contract Staking is Ownable {
     }
 
     // 사용자가 풀에서 자신의 몫을 정확하게 받도록 하게 하는 함수
-    function addPendingBNC(uint256 _pid, address _user) internal validPool (_pod) {
+    function addPendingBNC(uint256 _pid, address _user) internal vaildPool (_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         // 사용자가 받을 미지급 BNC양 계산
@@ -294,7 +305,7 @@ contract Staking is Ownable {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
-        addPengdingBNC(_pid, msg.sender);
+        addPendingBNC(_pid, msg.sender);
 
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
@@ -314,14 +325,14 @@ contract Staking is Ownable {
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
 
         // 탈주에 대한 리워드, 수정 필요
-        user.amount = ???; 
-        user.exactRewardCal;
-        user.pendingReward = ???;
+        user.amount = 0; 
+        user.exactRewardCal = 0;
+        user.pendingReward = 0;
     }
 
     // 안전 장치 (claimBNC에서 딱 1번 사용)
     function safeBNCTransfer(address _to, uint256 _amount) internal {
-        uint256 BNCBal= BNC.balanceOf(address(this));
+        uint256 BNCBal= BNC.balances(address(this)); // 이게 맞나???
         // 잔액이 유저가 요청한 잔액보다 부족할 경우 CA에 있는 잔액 전부 해당 유저에게 송금
         if (_amount > BNCBal) {
             BNC.transfer(_to, BNCBal);
@@ -331,15 +342,15 @@ contract Staking is Ownable {
     }
 
     // 쌓인 보상 청구 (스테이킹으로 얻은 보상만 청구)
-    function claimBNC(uint256 _pid) public nonReetrant valiPool(_pid) {
+    function claimBNC(uint256 _pid) public nonReentrant vaildPool(_pid) {
         updatePool(_pid);
         addPendingBNC(_pid, msg.sender);
         UserInfo storage user = userInfo[_pid][msg.sender];
         // 유저가 청구할 수 있는 쌓인 보상이 있다면
         if(user.pendingReward > 0) {
-            uint256 amount = user.pendingReward;
-            user.pendingReward = 0; 
-            safeBNCTransfer(msg.sender, amount);
+            uint256 amount = user.pendingReward; // amount에 담고
+            user.pendingReward = 0; // 0으로 만들고
+            safeBNCTransfer(msg.sender, amount); // 담은거 보냄
             
             emit ClaimBNC(msg.sender, _pid, amount);
         }
