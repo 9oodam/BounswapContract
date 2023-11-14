@@ -8,7 +8,7 @@ contract WBNC is Token {
 
     event Withdrawal(address indexed to, uint256 amount);
 
-    constructor(string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, _uri, 0) {
+    constructor(string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
     }
 
     function deposit(uint value) public payable virtual {

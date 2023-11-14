@@ -86,7 +86,7 @@ contract Governance {
         // proposal.againstVotes = 0;
 
         // 거버넌스 토큰 burn
-        Token(govToken).burn(_proposer, 1);
+        Token(govToken)._burn(_proposer, 1);
     }
 
     // 제안서 반환
@@ -118,6 +118,6 @@ contract Governance {
         proposals[_id].receipts[voter].support = _support;
 
         // 투표하는 계정의 모든 거버넌스 토큰 burn
-        Token(govToken).burn(voter, voterBalance);
+        Token(govToken)._burn(voter, voterBalance);
     }
 }
