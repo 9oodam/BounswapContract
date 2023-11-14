@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "./Token.sol";
 
@@ -11,8 +12,8 @@ contract WBNC is Token {
     constructor(string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, _uri, 0) {
     }
 
-    function deposit(uint value, address userAddress) public virtual {
-        _mint(userAddress, value);
+    function deposit(uint value) public payable virtual {
+        _mint(msg.sender, value);
 
         emit Deposit(msg.sender, value);
     }

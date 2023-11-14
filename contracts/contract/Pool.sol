@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "./Token.sol";
 import "./Factory.sol";
@@ -38,7 +39,7 @@ contract Pool is Token {
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    constructor(string memory _name, string memory _symbol) Token(_name, _symbol, '', 0) {
+    constructor(string memory _name, string memory _symbol) Token(_name, _symbol, 0, "") {
         factory = msg.sender;
     }
 
@@ -64,7 +65,7 @@ contract Pool is Token {
         _blockTimestampLast = blockTimestampLast;
     }
 
-    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
+    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) public {
         require(balance0 <= uint112((2**112) - 1) && balance1 <= uint112((2**112) - 1), "OVERFLOW");
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         // uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired

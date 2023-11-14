@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "./Wrapping.sol";
 import "./Factory.sol";
-import "./Pair.sol";
+import "./Pool.sol";
 import "./Swap.sol";
 import "./Token.sol";
 
 contract InitialProxy {
 
     // 인스턴스 담을 변수
-    Wrapping wrappingParams;
+    // Wrapping wrappingParams;
     Factory factoryParams;
-    Pool poolParams;
     Swap swapParams;
 
     address wbncAddress;
@@ -21,11 +21,11 @@ contract InitialProxy {
     bool isSucceed = true;
     bool isSucceedPayable = true;
 
-    constructor(address _wrappingAddress, address _factoryAddress, address _swapAddress, address _wbncAddress) {
-        wrappingParams = new Wrapping(_wrappingAddress);
-        factoryParams = new Factory(_factoryAddress);
-        swapParams = new Swap(_swapAddress);
-        poolParams = new Pool(); // 인스턴스만 생성하고 동적으로 address 넣어서 실행 예정
+    // constructor(address _wrappingAddress, address _factoryAddress, address _swapAddress, address _wbncAddress) {
+    constructor(address _factoryAddress, address _swapAddress, address _wbncAddress) {
+        // wrappingParams = Wrapping(_wrappingAddress);
+        factoryParams = Factory(_factoryAddress);
+        swapParams = Swap(_swapAddress);
 
         wbncAddress = _wbncAddress;
     }
@@ -35,7 +35,8 @@ contract InitialProxy {
     function initialPlay(bytes[] memory data) public returns (bool) {
         for (uint i = 0; i < data.length; i++) {
             require(isSucceed == true, "Function failed");
-            bool result = address(this).call(data[i]);
+            (bool result, ) = address(this).call(data[i]);
+            // bool result = address(this).call(data[i]);
             isSucceed = result; // 함수 순서대로 실행 중 실패하면
         }
         // if(isSucceed == false) {
@@ -48,7 +49,8 @@ contract InitialProxy {
     function initialPlayPayable(bytes[] memory data) public payable returns (bool) {
         for (uint i = 0; i < data.length; i++) {
             require(isSucceedPayable == true, "Function failed");
-            bool result = address(this).call(data[i]);
+            (bool result, ) = address(this).call(data[i]);
+            // bool result = address(this).call(data[i]);
             isSucceedPayable = result;
         }
         return true;
@@ -56,14 +58,14 @@ contract InitialProxy {
 
     // Wrapping.sol
     // 사용자에게 bnc 받아서 wbnc 발행
-    function wrappingDeposit(address userAddress, uint256 bncAmount) internal payable returns (bool) {
-        bool result = wrappingParams.depositWBNC{value : bncAmount}(userAddress);
-        return result;
-    }
-    // wbnc 소각 후 bnc 사용자에게 전송
-    function wrappingWithdraw(address userAddress, address pairAddress) internal returns (bool) {
-        bool result = wrappingParams.withdrawWBNC(userAddress, pairAddress);
-    }
+    // function wrappingDeposit(address userAddress, uint256 bncAmount) public payable returns (bool) {
+    //     bool result = wrappingParams.depositWBNC{value : bncAmount}(userAddress);
+    //     return result;
+    // }
+    // // wbnc 소각 후 bnc 사용자에게 전송
+    // function wrappingWithdraw(address userAddress, address pairAddress) internal returns (bool) {
+    //     bool result = wrappingParams.withdrawWBNC(userAddress, pairAddress);
+    // }
 
     // Factory.sol
     // Pair 생성
@@ -81,49 +83,62 @@ contract InitialProxy {
     // add Liquidity & lp token 민팅
     function poolMint(address userAddress, address tokenA, address tokenB) internal returns (bool) {
         // getPair 로 pair address 얻고
-        address pairAddress = factoryParams.getPair[tokenA][tokenB];
+        address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
+
         // lp 토큰 민팅의 주체는 사용자
-        bool result = poolParams(pairAddress).mint(userAddress);
+        bool result = Pool(pairAddress).mint(userAddress);
         return result;
     }
     // remove Liquidity & lp token 소각
     function poolBurn(address userAddress, address pairAddress, uint percentage) internal returns (bool) {
-        bool result = poolParams(pairAddress).burn(userAddress, percentage);
+        bool result = Pool(pairAddress).burn(userAddress, percentage);
         return result;
     }
     // 수수료 청구
     function poolClaimFee(address userAddress, address pairAddress) internal returns (bool) {
-        bool result = poolParams(pairAddress).claimFee(userAddress);
+        bool result = Pool(pairAddress).claimFee(userAddress);
         return result;
     }
 
     // Swap.sol
 
+    // 사용자가 컨트랙트한테 권한 위임하는 부분
+    // 거래 전에 권한을 위임하시겠습니까? 그 부분
+
     // 1) input 값을 지정해서 스왑
     // token -> token
     function swapExactTokensForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
-        result = swapParams.exactTokensForTokens(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress);
+        address[2] memory path = [inputToken, outputToken];
+        result = swapParams.exactTokensForTokens(pairAddress, inputAmount, minToken, path, userAddress);
     }
     // token -> bnc
     function swapExactTokensForBNC(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
-        result = swapParams.exactTokensForBNC(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress);
+        address[2] memory path = [inputToken, outputToken];
+        result = swapParams.exactTokensForBNC(pairAddress, inputAmount, minToken, path, userAddress);
     }
     // bnc -> token
-    function swapExactBNCForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) internal payable returns (bool result) {
-        result = swapParams.exactBNCForTokens(pairAddress, inputAmount, minToken, [inputToken, outputToken], userAddress).value(inputAmount);
+    function swapExactBNCForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken, address userAddress) public payable returns (bool result) {
+        address[2] memory path = [inputToken, outputToken];
+        // 확인 필요
+        swapParams.exactBNCForTokens{value : inputAmount}(pairAddress, inputAmount, minToken, path, userAddress);
+        // swapParams.exactBNCForTokens(pairAddress, inputAmount, minToken, path, userAddress).value(inputAmount);
     }
 
-    // 2) output 값을 지정해서 스왑
+    // 2) output 값을 지정해서 스왑 
     // token -> token
     function swapTokensForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
-        result = swapParams.tokensForExactTokens(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress);
+        address[2] memory path = [inputToken, outputToken];
+        result = swapParams.tokensForExactTokens(pairAddress, outputAmount, maxToken, path, userAddress);
     }
     // token -> bnc
     function swapTokensForExactBNC(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal returns (bool result) {
-        result = swapParams.tokensForExactBNC(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress);
+        address[2] memory path = [inputToken, outputToken];
+        result = swapParams.tokensForExactBNC(pairAddress, outputAmount, maxToken, path, userAddress);
     }
     // bnc -> tokdn
-    function swapBNCForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) internal payable returns (bool result) {
-        result = swapParams.bNCForExactTokens(pairAddress, outputAmount, maxToken, [inputToken, outputToken], userAddress).value(maxToken);
+    function swapBNCForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken, address userAddress) public payable returns (bool result) {
+        address[2] memory path = [inputToken, outputToken];
+        result = swapParams.bNCForExactTokens{value : maxToken}(pairAddress, outputAmount, path, userAddress);
+        // result = swapParams.bNCForExactTokens(pairAddress, outputAmount, maxToken, path, userAddress).value(maxToken);
     }
 }

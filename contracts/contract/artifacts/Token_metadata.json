@@ -6,6 +6,32 @@
 	"output": {
 		"abi": [
 			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_symbol",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "_uri",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
 				"anonymous": false,
 				"inputs": [
 					{
@@ -54,6 +80,42 @@
 				],
 				"name": "Transfer",
 				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "_burn",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "_mint",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			},
 			{
 				"inputs": [
@@ -148,6 +210,7 @@
 					},
 					{
 						"internalType": "uint256",
+						"name": "amount",
 						"name": "amount",
 						"type": "uint256"
 					}
@@ -269,6 +332,7 @@
 					{
 						"internalType": "uint256",
 						"name": "amount",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
@@ -385,11 +449,11 @@
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
-			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"keccak256": "0x27cbddb44ebb8adf484b3e35c03cc3a3d13f0cb94386270b9786bf6376c98fff",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
-				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+				"bzz-raw://67b504cb0020a3444c12e0f9722b323a3594cf228e9259f92a3fa6927a2aaa88",
+				"dweb:/ipfs/QmbQR2ir3MNCCxAyyQ3vdk6gFTJY1aA8izmBAN78xiZTha"
 			]
 		}
 	},

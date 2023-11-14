@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "../contract/Pool.sol";
 import "../contract/Token.sol";
@@ -104,7 +105,7 @@ contract Data {
     }
 
     // All pool dash board 목록 반환
-    function getAllPools() public returns (PoolDetail[] memory) {
+    function getAllPools() public view returns (PoolDetail[] memory) {
         PoolDetail[] memory arr = new PoolDetail[](allPairs.length); 
         for (uint i=0; i<allPairs.length; i++) {
             arr[i] = getEachPool(allPairs[i]);
@@ -113,7 +114,7 @@ contract Data {
     }
 
     // My pool dash board 목록 반환
-    function getUserPools() public returns (PoolDetail[] memory) {
+    function getUserPools() public view returns (PoolDetail[] memory) {
         address[] memory userPool = validatorPoolArr[msg.sender];
         PoolDetail[] memory arr = new PoolDetail[](userPool.length);
         for (uint i=0; i<userPool.length; i++) {
@@ -123,7 +124,7 @@ contract Data {
     }
 
     // 각 pool detail 정보
-    function getEachPool(address pairAddress) public returns (PoolDetail memory) {
+    function getEachPool(address pairAddress) public view returns (PoolDetail memory) {
         Pool pool = Pool(pairAddress);
         Token token0 = Token(pool.token0());
         Token token1 = Token(pool.token1());
@@ -133,18 +134,18 @@ contract Data {
     }
 
     // my pool detail page에서 보여줄 정보
-    function getUserPoolDetail(address pairAddress) public returns (MyPoolDetail memory) {
+    function getUserPoolDetail(address pairAddress) public view returns (MyPoolDetail memory) {
         (uint256 amount0, uint256 amount1) = Pool(pairAddress).getUserLiquidity(msg.sender); 
         return MyPoolDetail(getEachPool(pairAddress), amount0, amount1);
     }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee(address pairAddress) public returns (UnclaimedFeeData memory) {
+    function getUnclaimedFee(address pairAddress) public view returns (UnclaimedFeeData memory) {
         return userUnclaimedFee[msg.sender][pairAddress];
     }
 
     // 확인 필요 다른 컨트랙트에서 불러올때 참고
-    function getUnclaimedFee(address validator, address pairAddress) public returns (uint256, uint256) {
+    function getUnclaimedFee(address validator, address pairAddress) public view returns (uint256, uint256) {
         return (userUnclaimedFee[validator][pairAddress].token0FeeAmount, userUnclaimedFee[validator][pairAddress].token1FeeAmount);
     }
     
@@ -158,8 +159,13 @@ contract Data {
         return allTokens;
     }
 
+    // 토큰 배열에 토큰 추가
+    function addToken(address token) public {
+        allTokens.push(token);
+    }
+
     // 플랫폼 내 모든 토큰을 반환하는 함수
-    function getAllTokens() public returns (TokenDetail[] memory) {
+    function getAllTokens() public view returns (TokenDetail[] memory) {
         TokenDetail[] memory arr = new TokenDetail[](allTokens.length);
         for(uint i=0; i<allTokens.length; i++) {
             arr[i] = getEachToken(allTokens[i]);
@@ -168,7 +174,7 @@ contract Data {
     }
 
     // 특정 토큰 정보 반환하는 함수
-    function getEachToken(address tokenAddress) public returns (TokenDetail memory) {
+    function getEachToken(address tokenAddress) public view returns (TokenDetail memory) {
         Token token = Token(tokenAddress);
         uint256 tvl = 0;
         for(uint i=0; i<allPairs.length; i++) {
@@ -180,7 +186,7 @@ contract Data {
     }
 
     // 24시간/7일 전부터 현재까지 발생한 Block number 반환
-    function getBlockNumber(uint32 timeStampNow, uint32 timeStampBefore) public returns (uint32[] memory) {
+    function getBlockNumber(uint32 timeStampNow, uint32 timeStampBefore) public view returns (uint32[] memory) {
         uint32[] memory arr = new uint32[](timeStampNow - timeStampBefore);
         for(uint32 i=timeStampBefore; i<timeStampNow; i++) {
             if(blockNumbers[i] != 0) arr[i] = blockNumbers[i];

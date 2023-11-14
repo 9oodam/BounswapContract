@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "./Token.sol";
 import "./Pool.sol";
@@ -7,12 +8,12 @@ import "../utils/Data.sol";
 
 contract Factory {
     Data dataParams;
-    address public dataAddress;
+    address private dataAddress;
 
     address public feeTo;
-    address public feeToSetter;
+    address private feeToSetter;
 
-    mapping(address => mapping(address => address)) public getPair;
+    mapping(address => mapping(address => address)) private getPair;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
@@ -22,7 +23,11 @@ contract Factory {
         dataParams = Data(_dataAddress);
     }
 
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    function getPairAddress(address tokenA, address tokenB) public returns (address) {
+        return getPair[tokenA][tokenB];
+    }
+
+    function createPair(address tokenA, address tokenB) external returns (bool) {
         require(tokenA != tokenB, 'same token');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'token is zero address');
@@ -54,10 +59,11 @@ contract Factory {
         dataParams.addPair(pairAddress);
 
         emit PairCreated(token0, token1, pairAddress, dataParams.allPairsLength());
+        return true;
     }
 
     // 공급자가 가지고 있는 pool 배열
-    function setValidatorPoolArr(address tokenA, address tokenB) internal {
+    function setValidatorPoolArr(address tokenA, address tokenB) public returns(bool) {
         address pair = getPair[tokenA][tokenB];
         // 이미 있으면 중복 안되게, 삭제되면 pop
         bool isDuplicated = false;
@@ -69,6 +75,7 @@ contract Factory {
         }
         require(isDuplicated == false);
         dataParams.addValidatorPoolArr(msg.sender, pair);
+        return true;
     }
 
     // 확인 필요 
