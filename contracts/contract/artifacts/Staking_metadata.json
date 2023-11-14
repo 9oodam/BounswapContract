@@ -530,6 +530,11 @@
 						"internalType": "uint256",
 						"name": "accBNCPerShare",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stakingEndTime",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -600,6 +605,24 @@
 					}
 				],
 				"name": "setPercent",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_days",
+						"type": "uint256"
+					}
+				],
+				"name": "setStakingEndDays",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -837,11 +860,11 @@
 			]
 		},
 		"contracts/contract/Staking.sol": {
-			"keccak256": "0x528bd3c36034910cfc11273daa2fcfe081acfaabe8e714586d6ec745e47dc010",
+			"keccak256": "0x84e6e6a1f22f81dddf81a2bacd717cec3f4c59dacd52a2ae05df1481cfdc6e54",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://adcb263c21957f25558a5bbc31aea58c2e5751b0cf65974d39b0d9aac48bcf07",
-				"dweb:/ipfs/QmNfyWa4ApmcSrQisn51cD9RhgwqjsLk75CeerRqAfg4vm"
+				"bzz-raw://709b5c6a6f3e7cfe3423ebeb35fe670dcd0987e84066b6e3e6fa923c0844823b",
+				"dweb:/ipfs/QmPB6SHzprgSdY2NxyrmfKvzQtXQGziX32kb2ahGmPK3Zs"
 			]
 		},
 		"contracts/contract/Token.sol": {

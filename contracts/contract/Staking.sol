@@ -109,7 +109,7 @@ contract Staking is Ownable, ReentrancyGuard {
         lastBlockDevWithdraw = block.number;
     }
     // 스테이킹 풀 생성 (오너가)
-    function addStakingPool (uint256 _allocPoint, IREC20 _lpToken) public onlyOwner {
+    function addStakingPool (uint256 _allocPoint, IERC20 _lpToken) public onlyOwner {
         _checkPoolDuplicate(_lpToken);
         massUpdatePools();
         uint256 lastRewardBlock = block.number < startBlock ? startBlock : block.number;
@@ -119,7 +119,8 @@ contract Staking is Ownable, ReentrancyGuard {
                 lpToken : IERC20(_lpToken),
                 allocPoint : _allocPoint,
                 lastRewardBlock : lastRewardBlock,
-                accBNCPerShare : 0 // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
+                accBNCPerShare : 0, // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
+                stakingEndTime : 0
             })
         );
     }
