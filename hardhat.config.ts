@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-ethers";
 import "hardhat-deploy";
 import "hardhat-docgen";
 import "dotenv/config";
