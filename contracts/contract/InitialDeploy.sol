@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import './WBNC.sol';
-import './Token.sol';
-import './Data.sol';
+import "./WBNC.sol";
+import "./Token.sol";
+import "../utils/Data.sol";
 
 contract InitialDeploy {
 
