@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.20+commit.a1b79de6"
+		"version": "0.8.19+commit.7dd6d404"
 	},
 	"language": "Solidity",
 	"output": {
@@ -390,7 +390,7 @@
 		"compilationTarget": {
 			"contracts/contract/Token.sol": "Token"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "paris",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -403,11 +403,11 @@
 	},
 	"sources": {
 		"contracts/contract/Token.sol": {
-			"keccak256": "0x9d8587e65702a513dd65ed72b29c4934c8e6d62643233142070449e3e4bcdf8c",
+			"keccak256": "0x60bea7db1e164261326d87b79368721bee93cb424a5390dc461dd1330c0c67ba",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://684271c23b80f0f19215776391361f3f99bb82aa968beb972d5aee16f87fa4b0",
-				"dweb:/ipfs/QmPSTn1DFFmv3f8tqvuBKh8K7tf31cE2MKqSw3DEWiWjnC"
+				"bzz-raw://7c51829bfd89280b8fa651f4375ff7bb325625a2763bdeb8e6883f0afc2ea68a",
+				"dweb:/ipfs/QmNikBFt2Ec27VCAuyG89zNcZKh2Jiy5xyyizopkdeQAPz"
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
