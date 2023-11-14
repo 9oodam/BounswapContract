@@ -132,6 +132,31 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "pendingReward",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalStaked",
+						"type": "uint256"
+					}
+				],
+				"name": "DistributeRewards",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "user",
@@ -289,7 +314,7 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "address",
+						"internalType": "contract IERC20",
 						"name": "_lpToken",
 						"type": "address"
 					}
@@ -812,11 +837,11 @@
 			]
 		},
 		"contracts/contract/Staking.sol": {
-			"keccak256": "0xedadb33d495dc72e45990d747ba4d8d77bf6e07d6d066138a67dfe6739b2bdab",
+			"keccak256": "0x528bd3c36034910cfc11273daa2fcfe081acfaabe8e714586d6ec745e47dc010",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://362c8c6e45e092e4841bf1cd658098ca4c785632058f34711575753c9363b9ef",
-				"dweb:/ipfs/QmYVDQa9GVS1bhtwgQdzuzgiz4koRKchdCsmSZeHNzD9p1"
+				"bzz-raw://adcb263c21957f25558a5bbc31aea58c2e5751b0cf65974d39b0d9aac48bcf07",
+				"dweb:/ipfs/QmNfyWa4ApmcSrQisn51cD9RhgwqjsLk75CeerRqAfg4vm"
 			]
 		},
 		"contracts/contract/Token.sol": {
