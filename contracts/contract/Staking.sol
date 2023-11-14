@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -201,6 +201,47 @@ contract Staking is Ownable, ReentrancyGuard {
             user.pendingReward = user.pendingReward + pending;
         }
     }
+    // 블록당 100개 토큰의 예상 보상 계산
+    function calculateRewardPer100Tokens(uint256 _pid) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        uint256 poolRewardPerBlock = BNCPerBlock * pool.allocPoint / totalAllocPoint;
+        uint256 totalStakedInPool = pool.lpToken.balanceOf(address(this));
+
+        // 100개 토큰에 대한 예상 보상 계산
+        uint256 rewardPer100Tokens = totalStakedInPool > 0 
+            ? poolRewardPerBlock * 1e18 / totalStakedInPool * 100
+            : 0;
+
+        return rewardPer100Tokens;
+    }
+    // 블록당 100개의 토큰의 예상 보상 계산
+    function rewardPer100Tokens (uint256 _pid) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        uint256 poolRewardPerBlock = BNCPerBlock * pool.allocPoint / totalAllocPoint;
+        uint256 totalStakedInPool = pool.lpToken.balanceOf(address(this));
+        // 100개 토큰에 대한 예상 보상 계산 (스테이킹 물량이 0일때는 계산 되지 않음)
+        // totalStakedInPool 값이 변화될 때마다 보상량은 바뀜 (이 함수가 호출될 때마다)
+        uint256 rewardPer100Tokens = totalStakedInPool > 0 ? poolRewardPerBlock * 1e18 / totalStakedInPool * 100 : 0;
+    }
+
+    // 특정 사용자가 풀에서 블록당 받을 수 있는 보상 계산
+    function userBlockRewardPerBlock(uint256 _pid, address _user) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+        uint256 poolReward = perBlockReward(_pid);
+        uint256 userShare = user.amount * 1e12 / pool.lpToken.balanceOf(address(this));
+        uint256 userRewardPerBlock = poolReward * userShare / 1e12;
+        return userRewardPerBlock;
+    }
+
+    // 해당 풀의 블록당 보상 계산
+    function perBlockReward (uint256 _pid) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        uint256 poolReward = BNCPerBlock * pool.allocPoint / totalAllocPoint;
+        return poolReward;
+    }
+
+
     // LP토큰 예치 
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
         PoolInfo storage pool = poolInfo[_pid];
@@ -281,6 +322,19 @@ contract Staking is Ownable, ReentrancyGuard {
                 break;
             }
         }
+    }
+    // 탈주 닌자가 주고 간 예상 보상 (사용자당)
+    function estimatedUserRewardFromNinja (uint256 _pid, address _user) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+        
+        uint256 totalStaked = pool.lpToken.balanceOf(address(this));
+        uint256 userShare = user.amount * 1e12 / totalStated; // 유저의 스테이킹 비율
+
+        // 예상 탈주 닌자 보상 계산
+        // 보상이 실제로 분배되고 나서 각 유저당 추정 보상
+        uint256 estimatedReward = user.pendingReward * userShare / 1e12;
+        return estimatedReward;
     }
 
     // 안전 장치 (claimBNC에서 딱 1번 사용)
