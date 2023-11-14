@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "./WBNC.sol"; // Wrapped BNC 스마트 계약
 
