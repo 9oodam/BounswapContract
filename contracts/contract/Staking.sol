@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IERC20.sol";
 import "../utils/Data.sol";
 import "./WBNC.sol";
+import "./LPToken.sol";
 
 contract Staking is Ownable, ReentrancyGuard { 
     
@@ -17,7 +18,7 @@ contract Staking is Ownable, ReentrancyGuard {
     }
 
     struct PoolInfo {
-        IERC20 lpToken;
+        LPToken lpToken;
         uint256 allocPoint; 
         uint256 lastRewardBlock; 
         uint256 accBNCPerShare;
@@ -109,14 +110,14 @@ contract Staking is Ownable, ReentrancyGuard {
         lastBlockDevWithdraw = block.number;
     }
     // 스테이킹 풀 생성 (오너가)
-    function addStakingPool (uint256 _allocPoint, IERC20 _lpToken) public onlyOwner {
+    function addStakingPool (uint256 _allocPoint, address _lpToken) public onlyOwner {
         _checkPoolDuplicate(_lpToken);
         massUpdatePools();
         uint256 lastRewardBlock = block.number < startBlock ? startBlock : block.number;
         totalAllocPoint = totalAllocPoint + _allocPoint;
         poolInfo.push(
             PoolInfo({
-                lpToken : IERC20(_lpToken),
+                lpToken : LPToken(_lpToken),
                 allocPoint : _allocPoint,
                 lastRewardBlock : lastRewardBlock,
                 accBNCPerShare : 0, // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
@@ -143,10 +144,10 @@ contract Staking is Ownable, ReentrancyGuard {
         poolInfo[_pid].allocPoint = _allocPoint;
     }
     // 같은 LP토큰으로 2번이상 풀이 생성되는 것을 방지, pid = Pool ID
-    function _checkPoolDuplicate(IERC20 _lpToken) view internal {
+    function _checkPoolDuplicate(address _lpToken) view internal {
         uint256 length = poolInfo.length;
         for(uint256 pid = 0; pid < length; ++pid) {
-            require(poolInfo[pid].lpToken != IERC20(_lpToken), "pool existed");
+            require(poolInfo[pid].lpToken != LPToken(_lpToken), "pool existed");
         }
     }
     // 모든 풀 업데이트

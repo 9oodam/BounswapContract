@@ -48,6 +48,7 @@ export interface StakingInterface extends Interface {
       | "set"
       | "setDevAddress"
       | "setPercent"
+      | "setStakingEndDays"
       | "stakingPercent"
       | "startBlock"
       | "totalAllocPoint"
@@ -63,6 +64,7 @@ export interface StakingInterface extends Interface {
     nameOrSignatureOrTopic:
       | "ClaimBNC"
       | "Deposit"
+      | "DistributeRewards"
       | "EmergencyWithdraw"
       | "OwnershipTransferred"
       | "SetDev0Address"
@@ -145,6 +147,10 @@ export interface StakingInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setPercent",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setStakingEndDays",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -237,6 +243,10 @@ export interface StakingInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setPercent", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "setStakingEndDays",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "stakingPercent",
     data: BytesLike
   ): Result;
@@ -291,6 +301,28 @@ export namespace DepositEvent {
     user: string;
     pid: bigint;
     amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace DistributeRewardsEvent {
+  export type InputTuple = [
+    _pid: BigNumberish,
+    pendingReward: BigNumberish,
+    totalStaked: BigNumberish
+  ];
+  export type OutputTuple = [
+    _pid: bigint,
+    pendingReward: bigint,
+    totalStaked: bigint
+  ];
+  export interface OutputObject {
+    _pid: bigint;
+    pendingReward: bigint;
+    totalStaked: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -485,11 +517,12 @@ export interface Staking extends BaseContract {
   poolInfo: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, bigint, bigint, bigint] & {
+      [string, bigint, bigint, bigint, bigint] & {
         lpToken: string;
         allocPoint: bigint;
         lastRewardBlock: bigint;
         accBNCPerShare: bigint;
+        stakingEndTime: bigint;
       }
     ],
     "view"
@@ -513,6 +546,12 @@ export interface Staking extends BaseContract {
 
   setPercent: TypedContractMethod<
     [_stakingPercent: BigNumberish, _dev0Percent: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setStakingEndDays: TypedContractMethod<
+    [_pid: BigNumberish, _days: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -630,11 +669,12 @@ export interface Staking extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, bigint, bigint, bigint] & {
+      [string, bigint, bigint, bigint, bigint] & {
         lpToken: string;
         allocPoint: bigint;
         lastRewardBlock: bigint;
         accBNCPerShare: bigint;
+        stakingEndTime: bigint;
       }
     ],
     "view"
@@ -659,6 +699,13 @@ export interface Staking extends BaseContract {
     nameOrSignature: "setPercent"
   ): TypedContractMethod<
     [_stakingPercent: BigNumberish, _dev0Percent: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setStakingEndDays"
+  ): TypedContractMethod<
+    [_pid: BigNumberish, _days: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -717,6 +764,13 @@ export interface Staking extends BaseContract {
     DepositEvent.InputTuple,
     DepositEvent.OutputTuple,
     DepositEvent.OutputObject
+  >;
+  getEvent(
+    key: "DistributeRewards"
+  ): TypedContractEvent<
+    DistributeRewardsEvent.InputTuple,
+    DistributeRewardsEvent.OutputTuple,
+    DistributeRewardsEvent.OutputObject
   >;
   getEvent(
     key: "EmergencyWithdraw"
@@ -782,6 +836,17 @@ export interface Staking extends BaseContract {
       DepositEvent.InputTuple,
       DepositEvent.OutputTuple,
       DepositEvent.OutputObject
+    >;
+
+    "DistributeRewards(uint256,uint256,uint256)": TypedContractEvent<
+      DistributeRewardsEvent.InputTuple,
+      DistributeRewardsEvent.OutputTuple,
+      DistributeRewardsEvent.OutputObject
+    >;
+    DistributeRewards: TypedContractEvent<
+      DistributeRewardsEvent.InputTuple,
+      DistributeRewardsEvent.OutputTuple,
+      DistributeRewardsEvent.OutputObject
     >;
 
     "EmergencyWithdraw(address,uint256,uint256)": TypedContractEvent<
