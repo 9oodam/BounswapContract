@@ -19,8 +19,8 @@ contract Governance {
     struct Proposal {
         uint id;
         address proposer;
-        bytes32 title;
-        bytes32 description;
+        bytes title;
+        bytes description;
         uint forVotes;
         uint againstVotes;
         uint startBlock;
@@ -57,7 +57,7 @@ contract Governance {
     }   
 
     // 제안서 제출했을때
-    event ProposalCreated(uint id, address proposer, uint startBlock, uint endBlock, ProposalState state, bytes32[] contents);
+    event ProposalCreated(uint id, address proposer, uint startBlock, uint endBlock, ProposalState state, bytes[] contents);
 
     // 투표했을때
     event VoteCast(address voter, uint proposalId, bool support, uint votes);
@@ -70,7 +70,7 @@ contract Governance {
     }
     
     // 의제 제출
-    function propose(address _proposer, bytes32[] memory contents) public {
+    function propose(address _proposer, bytes[] memory contents) public {
         // 의제 제출에 필요한 거버넌스 토큰 있는지 확인
         require(Token(govToken).balanceOf(_proposer) >= 1, "govToken");
         
@@ -90,12 +90,12 @@ contract Governance {
     //     return (proposals[_id]);
     // }
 
-    function getProposals() external view returns (Proposal[] memory) {
+    function getProposals() external view returns (Proposal[] memory, uint quorumVotes) {
         Proposal[] memory proposalArr = new Proposal[](proposalCount);
         for (uint i = 1; i <= proposalCount; i++) {
             proposalArr[i - 1] = proposals[i];
         }
-        return proposalArr;
+        return (proposalArr, quorumVotes);
     }
 
     // 투표 여부 반환
