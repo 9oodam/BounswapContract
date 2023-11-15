@@ -15,6 +15,7 @@ contract Staking is Ownable, ReentrancyGuard {
         uint256 amount;
         uint256 exactRewardCal;
         uint256 pendingReward;
+        uint256 stakingStartTime;
     }
 
     struct PoolInfo {
@@ -23,6 +24,13 @@ contract Staking is Ownable, ReentrancyGuard {
         uint256 lastRewardBlock; 
         uint256 accBNCPerShare;
         uint256 stakingEndTime;
+        uint256 stakingPoolStartTime;
+    }
+
+    struct NinjaInfo {
+        uint256 totalLPToken; // 탈주자가 총 예치했던 LP수량
+        uint256 totalNinjaReward; // 탈주자가 남긴 리워드
+        uint256 stakingLeftTime; // 풀에서 떠난 시간 기록
     }
     
     WBNC public BNC; // 보상은 BNC로
@@ -43,22 +51,25 @@ contract Staking is Ownable, ReentrancyGuard {
     PoolInfo[] public poolInfo;
 
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+
+    mapping(uint256 => mapping(address => NinjaInfo)) public ninjaInfo;
     
     mapping(uint256 => address[]) private stakingUsers; // 풀별 스테이킹 유저 목록
-    uint256 public totalNinjaReward = 0; // 탈주자가 남긴 리워드 누적
 
+    uint256 public AlltotalNinjaReward = 0;
     uint256 public totalAllocPoint = 0;
     uint256 public startBlock;
     
-
     event SetDev0Address(address indexed dev0Addr);
     event UpdateBNCPerBlock(uint256 BNCPerBlock);
     event SetPercent(uint256 stakingPercent, uint256 dev0Percent);
-    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 amount, uint256 stakingStartTime);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount); // 쌓인 리워드 받으면서 출금하는 일반 출금
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount); // 보상 못받고 자기것만 긴급 출금, 탈주닌자
     event ClaimBNC(address indexed user, uint256 indexed pid, uint256 amount);
     event DistributeRewards (uint256 _pid, uint256 pendingReward, uint256 totalStaked); // 탈주닌자 리워드 처리 기록
+    event AddStakingPool (uint256 _allocPoint, address _lpToken, uint256 stakingPoolStartTime); // 스테이킹 풀
+    event NinjaLiftInfo(uint256 _totalLPToken, uint256 _totalNinjaReward, uint256 _stakingLeftTime);
     modifier vaildPool (uint256 _pid) {
         require(_pid < poolInfo.length, "pool not exist");
         _;
@@ -117,15 +128,19 @@ contract Staking is Ownable, ReentrancyGuard {
         massUpdatePools();
         uint256 lastRewardBlock = block.number < startBlock ? startBlock : block.number;
         totalAllocPoint = totalAllocPoint + _allocPoint;
+        uint256 stakingPoolStartTime = block.timestamp;
         poolInfo.push(
             PoolInfo({
                 lpToken : LPToken(_lpToken),
                 allocPoint : _allocPoint,
                 lastRewardBlock : lastRewardBlock,
                 accBNCPerShare : 0, // 누적된 BNC당 주식 값, 처음 생성시는 없으므로 0
-                stakingEndTime : 0
+                stakingEndTime : 0,
+                stakingPoolStartTime : stakingPoolStartTime
             })
         );
+        PoolInfo storage pool = poolInfo[poolInfo.length - 1];
+        emit AddStakingPool(_allocPoint, _lpToken, pool.stakingPoolStartTime);
     }
     // 스테이킹 종료 일수 설정 (오너가)
     function setStakingEndDays(uint256 _pid, uint256 _days) public onlyOwner vaildPool(_pid) {
@@ -261,7 +276,11 @@ contract Staking is Ownable, ReentrancyGuard {
         }
 
         user.exactRewardCal = user.amount * pool.accBNCPerShare / 1e12;
-        emit Deposit(msg.sender, _pid, _amount);
+        // 처음 예치했던 시간 기록
+        if(user.stakingStartTime == 0) {
+            user.stakingStartTime = block.timestamp;
+        }
+        emit Deposit(msg.sender, _pid, _amount, user.stakingStartTime);
     }
 
     // 일반 출금
@@ -285,35 +304,48 @@ contract Staking is Ownable, ReentrancyGuard {
     function emergencyWithdraw (uint256 _pid) public nonReentrant vaildPool (_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
+        uint256 userAmount = user.amount; 
 
-        pool.lpToken.transfer(address(msg.sender), user.amount);
-        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+        pool.lpToken.transfer(address(msg.sender), userAmount);
+        emit EmergencyWithdraw(msg.sender, _pid, userAmount);
 
         uint256 pendingReward = user.pendingReward;
-        uint256 totalStaked = pool.lpToken.balanceOf(address(this)) - user.amount;
+        uint256 totalStaked = pool.lpToken.balanceOf(address(this)) - userAmount;
+        uint256 userShare = userAmount * 1e12 / totalStaked; // 유저의 스테이킹 비율
+        uint256 lastTotalNinjaRewardRate = pendingReward / userShare;
+
+        getLastNinjaRewardInfo(lastTotalNinjaRewardRate); // 마지막 탈주자의 리워드를 비율로
+
         if(totalStaked > 0 && pendingReward > 0) {
             distributeRewards(_pid, pendingReward, totalStaked);
         }
 
+        NinjaInfo storage ninja = ninjaInfo[_pid][msg.sender];
+        ninja.totalLPToken = userAmount;
+        ninja.totalNinjaReward = pendingReward;
+        ninja.stakingLeftTime = block.timestamp;
+        emit NinjaLiftInfo(msg.sender, ninja.totalLPToken, ninja.totalNinjaReward, ninja.stakingLeftTime);
+
         user.amount = 0; 
         user.exactRewardCal = 0;
         user.pendingReward = 0;
-        _removeUserFromStakingUsers(_pid, msg.sender);
+
+        _removeUserFromStakingUsers(_pid, msg.sender); // 스테이킹 유저 삭제
     }
 
     // 탈주닌자가 쌓고 떠난 리워드 재분배
     function distributeRewards (uint256 _pid, uint256 _reward, uint256 _totalStaked) internal {
         uint256 length = stakingUsers[_pid].length;
+        NinjaInfo storage ninja = ninjaInfo;
         for(uint256 i = 0; i < length; ++i) {
             address userAddress = stakingUsers[_pid][i];
             UserInfo storage stakeUser = userInfo[_pid][userAddress]; // 현재 시점에 스테이킹 중인 유저들
             uint256 userShare = stakeUser.amount * 1e12 / _totalStaked; // 유저 별 스테이크 비율
-            totalNinjaReward += _reward * userShare / 1e12; // 탈주자가 남긴 리워드 누적
+            AlltotalNinjaReward += _reward * userShare / 1e12; // 탈주자가 남긴 리워드 누적
             stakeUser.pendingReward += _reward * userShare / 1e12; // 유저 별 보상 재분배 (많이 넣은 사람이 더 많이 받게)
         }
         emit DistributeRewards (_pid, _reward, _totalStaked);
     }
-// struct 블록타임 스탬프, 탈주한 사람의 토탈 LP양, 받아가지 못한 리워드(totalNinjaReward)
 
     // stakingUsers 배열에서 사용자 제거
     function _removeUserFromStakingUsers(uint256 _pid, address _user) internal {
@@ -326,9 +358,26 @@ contract Staking is Ownable, ReentrancyGuard {
             }
         }
     }
-    // totalNinjaRewad 확인
-    function getTotalNinjaReward () public view returns (uint256) {
-        return totalNinjaReward;
+    // 탈주자 정보 조회
+    function getNinjaInfo(uint256 _pid, address _user) public view returns (NinjaInfo memory) {
+        return ninjaInfo[_pid][_user];
+    }
+    // 마지막 탈주자의 리워드 비율 조회
+    function getLastNinjaRewardInfo (uint256 _lasttotalNinjaRewardRate) public view returns (uint256) {
+        return _lasttotalNinjaRewardRate;
+    }
+
+    // 모든 탈주자가 남기고 간 총 누적 리워드
+    function getAllTotalNinjaReward () public view returns (uint256) {
+        return AlltotalNinjaReward;
+    }
+    // 해당 pool에 누적된 LP당 유저가 받을 수 있는 BNC양 계산
+    function getAccBNCPerShareFromUser (uint256 _pid, address _user) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
+
+        uint256 BNCperShareFromUser = user.amount * pool.accBNCPerShare / 1e12;
+        return BNCperShareFromUser;
     }
     // 탈주 닌자가 주고 간 예상 보상 (사용자당)
     function estimatedUserRewardFromNinjs(uint256 _pid, address _user) public view returns (uint256) {
@@ -339,7 +388,7 @@ contract Staking is Ownable, ReentrancyGuard {
         uint256 userShare = user.amount * 1e12 / totalStaked; // 유저의 스테이킹 비율
 
         // 예상 탈주 닌자 보상 계산
-        uint256 estimatedReward = totalNinjaReward * userShare / 1e12;
+        uint256 estimatedReward = AlltotalNinjaReward * userShare / 1e12;
         return estimatedReward;
     }
 
