@@ -6,6 +6,7 @@ export type { GovToken } from "./GovToken";
 export type { Governance } from "./Governance";
 export type { InitialDeploy } from "./InitialDeploy";
 export type { InitialProxy } from "./InitialProxy";
+export type { LPToken } from "./LPToken";
 export type { Pool } from "./Pool";
 export type { Staking } from "./Staking";
 export type { Swap } from "./Swap";

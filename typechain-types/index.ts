@@ -20,6 +20,8 @@ export type { InitialDeploy } from "./contracts/contract/InitialDeploy";
 export { InitialDeploy__factory } from "./factories/contracts/contract/InitialDeploy__factory";
 export type { InitialProxy } from "./contracts/contract/InitialProxy";
 export { InitialProxy__factory } from "./factories/contracts/contract/InitialProxy__factory";
+export type { LPToken } from "./contracts/contract/LPToken";
+export { LPToken__factory } from "./factories/contracts/contract/LPToken__factory";
 export type { Pool } from "./contracts/contract/Pool";
 export { Pool__factory } from "./factories/contracts/contract/Pool__factory";
 export type { Staking } from "./contracts/contract/Staking";

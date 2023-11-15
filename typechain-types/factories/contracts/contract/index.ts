@@ -6,6 +6,7 @@ export { GovToken__factory } from "./GovToken__factory";
 export { Governance__factory } from "./Governance__factory";
 export { InitialDeploy__factory } from "./InitialDeploy__factory";
 export { InitialProxy__factory } from "./InitialProxy__factory";
+export { LPToken__factory } from "./LPToken__factory";
 export { Pool__factory } from "./Pool__factory";
 export { Staking__factory } from "./Staking__factory";
 export { Swap__factory } from "./Swap__factory";

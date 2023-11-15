@@ -3,11 +3,11 @@ pragma solidity ^0.8.19;
 
 import "./Token.sol";
 
-// LP 토큰
-contract LPToken is Token{
+// 거버넌스 토큰
+contract GovToken is Token {
     address private minter;
-
-    constructor(address _minter, string memory _name, string memory _symbol, uint _amount, string memory _uri) Token(_name, _symbol, _amount, _uri) {
+    
+    constructor(address _minter, string memory _name, string memory _symbol,  uint _amount, string memory _uri) Token(_name, _symbol, _amount, _uri) {
         minter = _minter;
     }
 
@@ -20,4 +20,5 @@ contract LPToken is Token{
         require(msg.sender == minter, "not minter");
         _burn(owner, amount);
     }
-}
+
+} 
