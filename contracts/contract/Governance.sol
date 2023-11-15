@@ -10,10 +10,12 @@ contract Governance {
 
     // 투표 기간
     // 15초에 블록 하나 생성된다고 가정할 때 4일
-    uint private votingPeriod = 23_040;    
+    // uint private votingPeriod = 23_040;    
+    uint private votingPeriod = 20; 
 
     // 제안서 통과되는 최소 투표 수
-    uint private quorumVotes = 1000;    
+    // uint private quorumVotes = 1000 * 10**18;
+    uint private quorumVotes = 7 * 10**18;  
 
     // 제안
     struct Proposal {
@@ -50,7 +52,7 @@ contract Governance {
 
     uint private unlocked = 1;
     modifier lock() {
-        require(unlocked == 1, 'LOCKED');
+        require(unlocked == 1, "LOCKED");
         unlocked = 0;
         _;
         unlocked = 1;
@@ -80,17 +82,12 @@ contract Governance {
         proposals[proposalCount] = proposal;
 
         // 거버넌스 토큰 burn
-        Token(govToken)._burn(_proposer, 1);
+        Token(govToken)._burn(_proposer, 1 * (10**18));
 
         emit ProposalCreated(proposal.id, _proposer, proposal.startBlock, proposal.endBlock, proposal.state, contents);
     }
 
-    // // 제안서 반환
-    // function getProposal(uint _id) external view returns (Proposal memory) {
-    //     return (proposals[_id]);
-    // }
-
-    function getProposals() external view returns (Proposal[] memory, uint quorumVotes) {
+    function getProposals() external view returns (Proposal[] memory, uint) {
         Proposal[] memory proposalArr = new Proposal[](proposalCount);
         for (uint i = 1; i <= proposalCount; i++) {
             proposalArr[i - 1] = proposals[i];
@@ -98,21 +95,23 @@ contract Governance {
         return (proposalArr, quorumVotes);
     }
 
-    // 투표 여부 반환
-    function getReceipt(uint _id, address voter) public view returns (Receipt memory) {
+    function getReceipt(uint _id, address voter) external view returns (Receipt memory) {
         return receipts[_id][voter];
     }
-
+    
     // 투표하기
-    function vote(uint _id, address voter, bool _support) external lock {
-        // uint256 voterBalance = GovToken(govToken).balanceOf(voter);
+    function vote(uint _id, address voter, bool _support) external lock returns (bool) {
         uint256 voterBalance = Token(govToken).balanceOf(voter);
         require(voterBalance > 0, "govToken");
         state(_id);
         // 투표 가능한 제안인지 확인
-        require(proposals[_id].state == ProposalState.Active, "state");
+        if (proposals[_id].state != ProposalState.Active) {
+            return false;
+        }
         // 투표 여부 확인
-        require(receipts[_id][voter].hasVoted == false, "already voted");
+        if (receipts[_id][voter].hasVoted == true) {
+            return false;
+        }
 
         if (_support) {
             proposals[_id].forVotes += voterBalance;    
@@ -128,6 +127,7 @@ contract Governance {
         Token(govToken)._burn(voter, voterBalance);
 
         emit VoteCast(voter, _id, _support, voterBalance);
+        return true;
     }
 
     // 제안서 상태 변경
