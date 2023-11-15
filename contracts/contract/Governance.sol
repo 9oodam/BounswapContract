@@ -2,34 +2,31 @@
 pragma solidity ^0.8.19;
 pragma solidity ^0.8.19;
 
-import "./GovToken.sol";
+import "./Token.sol";
 
 // 거버넌스 
 contract Governance {
     address private govToken;
     uint private proposalCount;
 
-    // 임의로 설정
     // 투표 기간
-    // 15초에 블록 하나 생성된다고 가정할 때 7일
-    uint private votingPeriod = 40_320;    
+    // 15초에 블록 하나 생성된다고 가정할 때 4일
+    uint private votingPeriod = 23_040;    
 
-    // 임의로 설정
     // 제안서 통과되는 최소 투표 수
-    uint private quorumVotes = 100;    
+    uint private quorumVotes = 1000;    
 
     // 제안
     struct Proposal {
         uint id;
         address proposer;
+        bytes title;
+        bytes description;
         uint forVotes;
         uint againstVotes;
         uint startBlock;
         uint endBlock;
         ProposalState state;
-        // 추가 작성
-        // // 사용자 => receipt
-        // mapping(address => Receipt) receipts;
     }
 
     // 제안 id => 사용자 => receipt
@@ -50,7 +47,7 @@ contract Governance {
     }
 
     // 제안 배열
-    Proposal[] private proposals;
+    mapping (uint => Proposal) public proposals;
 
     uint private unlocked = 1;
     modifier lock() {
@@ -61,7 +58,7 @@ contract Governance {
     }   
 
     // 제안서 제출했을때
-    event ProposalCreated(uint id, address proposer, uint startBlock, uint endBlock, ProposalState state, string[] contents);
+    event ProposalCreated(uint id, address proposer, uint startBlock, uint endBlock, ProposalState state, bytes[] contents);
 
     // 투표했을때
     event VoteCast(address voter, uint proposalId, bool support, uint votes);
@@ -72,25 +69,19 @@ contract Governance {
     constructor(address _govToken) {
         govToken = _govToken;
     }
-
     
     // 의제 제출
-    function propose(address _proposer, string[] memory contents) public {
+    function propose(address _proposer, bytes[] memory contents) public {
         // 의제 제출에 필요한 거버넌스 토큰 있는지 확인
-        require(GovToken(govToken).balanceOf(_proposer) >= 1, "govToken");
+        require(Token(govToken).balanceOf(_proposer) >= 1, "govToken");
         
         proposalCount++;
-        Proposal storage proposal = proposals[proposalCount];
-        proposal.id = proposalCount;
-        proposal.proposer = _proposer;
-        proposal.startBlock = block.number;
-        proposal.endBlock = block.number + votingPeriod;
-        proposal.state = ProposalState.Active;
-        // proposal.forVotes = 0;
-        // proposal.againstVotes = 0;
+
+        Proposal memory proposal = Proposal(proposalCount, _proposer, contents[0], contents[1], 0, 0, block.number, block.number + votingPeriod, ProposalState.Active);
+        proposals[proposalCount] = proposal;
 
         // 거버넌스 토큰 burn
-        GovToken(govToken).burn(_proposer, 1);
+        Token(govToken)._burn(_proposer, 1);
 
         emit ProposalCreated(proposal.id, _proposer, proposal.startBlock, proposal.endBlock, proposal.state, contents);
     }
@@ -100,27 +91,28 @@ contract Governance {
     //     return (proposals[_id]);
     // }
 
-    // 제안서 목록 반환
-    function getProposals() external view returns (Proposal[] memory) {
-        return proposals;
+    function getProposals() external view returns (Proposal[] memory, uint quorumVotes) {
+        Proposal[] memory proposalArr = new Proposal[](proposalCount);
+        for (uint i = 1; i <= proposalCount; i++) {
+            proposalArr[i - 1] = proposals[i];
+        }
+        return (proposalArr, quorumVotes);
     }
 
     // 투표 여부 반환
     function getReceipt(uint _id, address voter) public view returns (Receipt memory) {
-        // return proposals[_id].receipts[voter];
         return receipts[_id][voter];
     }
 
-
     // 투표하기
     function vote(uint _id, address voter, bool _support) external lock {
-        uint256 voterBalance = GovToken(govToken).balanceOf(voter);
+        // uint256 voterBalance = GovToken(govToken).balanceOf(voter);
+        uint256 voterBalance = Token(govToken).balanceOf(voter);
         require(voterBalance > 0, "govToken");
         state(_id);
         // 투표 가능한 제안인지 확인
         require(proposals[_id].state == ProposalState.Active, "state");
         // 투표 여부 확인
-        // require(proposals[_id].receipts[voter].hasVoted == false, "already voted");
         require(receipts[_id][voter].hasVoted == false, "already voted");
 
         if (_support) {
@@ -129,14 +121,12 @@ contract Governance {
             proposals[_id].againstVotes += voterBalance;    
         }
         
-        // proposals[_id].receipts[voter].hasVoted = true;
-        // proposals[_id].receipts[voter].support = _support;
         receipts[_id][voter].hasVoted = true;
         receipts[_id][voter].support = _support;
         receipts[_id][voter].votes = voterBalance;
 
         // 투표하는 계정의 모든 거버넌스 토큰 burn
-        GovToken(govToken).burn(voter, voterBalance);
+        Token(govToken)._burn(voter, voterBalance);
 
         emit VoteCast(voter, _id, _support, voterBalance);
     }
