@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "hardhat/console.sol";
+
 import "./Wrapping.sol";
 import "./Factory.sol";
 import "./Pool.sol";
@@ -20,6 +22,8 @@ contract InitialProxy {
     bool isSucceed = true;
     bool isSucceedPayable = true;
 
+    uint256 numForCheck = 10;
+
     // constructor(address _wrappingAddress, address _factoryAddress, address _swapAddress, address _wbncAddress) {
     constructor(address _factoryAddress, address _swapAddress, address _wbncAddress) {
         // wrappingParams = Wrapping(_wrappingAddress);
@@ -29,19 +33,38 @@ contract InitialProxy {
         wbncAddress = _wbncAddress;
     }
 
+    function check(bytes[] memory data) public returns (bool) {
+        for(uint i=0; i<data.length; i++) {
+            console.log('check start : ', i);
+            (bool result, ) = address(this).call(data[i]);
+        }
+    }
+
+    function checkcheck(uint num) public returns (bool) {
+        console.log('num : ', num);
+        numForCheck++;
+        return true;
+    }
+
+    function getNum() public view returns (uint256) {
+        console.log(numForCheck);
+        return numForCheck;
+    }
+
     // 최초 실행 함수
     // 매개변수로 받은 data를 반복문으로 돌면서 컨트랙트 내 함수 실행
     function initialPlay(bytes[] memory data) public returns (bool) {
+        console.log('in');
         for (uint i = 0; i < data.length; i++) {
-            require(isSucceed == true, "Function failed");
-            (bool result, ) = address(this).call(data[i]);
+            console.log(i);
+            // require(isSucceed == true, "Function failed");
+            address(this).call(data[i]);
             // bool result = address(this).call(data[i]);
-            isSucceed = result; // 함수 순서대로 실행 중 실패하면
         }
         // if(isSucceed == false) {
         //     address(this).wrappingWithdrawal();
         // }
-        return true;
+        // return isSucceed;
     }
 
     // 최초 실행 함수 (payable)
@@ -68,19 +91,21 @@ contract InitialProxy {
 
     // Factory.sol
     // Pair 생성
-    function factoryCreatePair(address tokenA, address tokenB) internal returns (bool) {
+    function factoryCreatePair(address tokenA, address tokenB) public returns (bool) {
+        console.log(tokenA, tokenB);
         bool result = factoryParams.createPair(tokenA, tokenB);
+        console.log(result);
         return result;
     }
     // 공급자가 가지고 있는 Pool 배열
-    function factorySetValidator(address tokenA, address tokenB) internal returns (bool) {
-        bool result = factoryParams.setValidatorPoolArr(tokenA, tokenB);
+    function factorySetValidator(address userAddress, address tokenA, address tokenB) public returns (bool) {
+        bool result = factoryParams.setValidatorPoolArr(userAddress, tokenA, tokenB);
         return result;
     }
 
     // Pool.sol
     // add Liquidity & lp token 민팅
-    function poolMint(address userAddress, address tokenA, address tokenB) internal returns (bool) {
+    function poolMint(address userAddress, address tokenA, address tokenB) public returns (bool) {
         // getPair 로 pair address 얻고
         address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
 

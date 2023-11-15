@@ -28,6 +28,8 @@ export type { Staking } from "./contracts/contract/Staking";
 export { Staking__factory } from "./factories/contracts/contract/Staking__factory";
 export type { Swap } from "./contracts/contract/Swap";
 export { Swap__factory } from "./factories/contracts/contract/Swap__factory";
+export type { Test } from "./contracts/contract/Test";
+export { Test__factory } from "./factories/contracts/contract/Test__factory";
 export type { Token } from "./contracts/contract/Token";
 export { Token__factory } from "./factories/contracts/contract/Token__factory";
 export type { WBNC } from "./contracts/contract/WBNC";

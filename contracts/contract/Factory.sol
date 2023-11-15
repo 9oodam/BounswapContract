@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "hardhat/console.sol";
+
 import "./Token.sol";
 import "./Pool.sol";
 import "../utils/Data.sol";
@@ -27,10 +29,13 @@ contract Factory {
     }
 
     function createPair(address tokenA, address tokenB) external returns (bool) {
+        console.log(tokenA, tokenB);
         require(tokenA != tokenB, 'same token');
+        console.log('different token');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'token is zero address');
         require(getPair[token0][token1] == address(0), 'pair already exists');
+        console.log('available address');
 
         // token0, 1로 새로운 pair 주소 생성 & create2로 contract 배포
         // bytes memory bytecode = type(Pool).creationCode;
@@ -48,6 +53,7 @@ contract Factory {
         string memory combinedSymbol = string(abi.encodePacked(symbolA, symbolB));
         Pool pairInstance = new Pool(combinedName, combinedSymbol);
         address pairAddress = address(pairInstance);
+        console.log(pairAddress);
         Pool(pairAddress).initialize(token0, token1);
         // Pool(pair).initialize(token0, token1, combinedName, combinedSymbol);
 
@@ -62,12 +68,12 @@ contract Factory {
     }
 
     // 공급자가 가지고 있는 pool 배열
-    function setValidatorPoolArr(address tokenA, address tokenB) public returns(bool) {
+    function setValidatorPoolArr(address userAddress, address tokenA, address tokenB) public returns(bool) {
         address pair = getPair[tokenA][tokenB];
         // 이미 있으면 중복 안되게, 삭제되면 pop
         bool isDuplicated = false;
-        for(uint i=0; i<dataParams.validatorPoolArrLength(msg.sender); i++) {
-            if(dataParams.getValidatorPoolArr(msg.sender)[i] == pair) {
+        for(uint i=0; i<dataParams.validatorPoolArrLength(userAddress); i++) {
+            if(dataParams.getValidatorPoolArr(userAddress)[i] == pair) {
                 isDuplicated == true;
                 break;
             }
