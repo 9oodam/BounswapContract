@@ -3,12 +3,8 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
-  BytesLike,
   FunctionFragment,
-  Result,
   Interface,
-  AddressLike,
   ContractRunner,
   ContractMethod,
   Listener,
@@ -18,102 +14,9 @@ import type {
   TypedDeferredTopicFilter,
   TypedEventLog,
   TypedListener,
-  TypedContractMethod,
 } from "../../common";
 
-export interface InitialProxyInterface extends Interface {
-  getFunction(
-    nameOrSignature:
-      | "check"
-      | "checkcheck"
-      | "factoryCreatePair"
-      | "factorySetValidator"
-      | "getNum"
-      | "initialPlay"
-      | "initialPlayPayable"
-      | "poolMint"
-      | "swapBNCForExactTokens"
-      | "swapExactBNCForTokens"
-  ): FunctionFragment;
-
-  encodeFunctionData(functionFragment: "check", values: [BytesLike[]]): string;
-  encodeFunctionData(
-    functionFragment: "checkcheck",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "factoryCreatePair",
-    values: [AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "factorySetValidator",
-    values: [AddressLike, AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(functionFragment: "getNum", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "initialPlay",
-    values: [BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialPlayPayable",
-    values: [BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "poolMint",
-    values: [AddressLike, AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swapBNCForExactTokens",
-    values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      AddressLike,
-      AddressLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swapExactBNCForTokens",
-    values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      AddressLike,
-      AddressLike,
-      AddressLike
-    ]
-  ): string;
-
-  decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "checkcheck", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "factoryCreatePair",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "factorySetValidator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getNum", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "initialPlay",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "initialPlayPayable",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "poolMint", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "swapBNCForExactTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapExactBNCForTokens",
-    data: BytesLike
-  ): Result;
-}
+export interface InitialProxyInterface extends Interface {}
 
 export interface InitialProxy extends BaseContract {
   connect(runner?: ContractRunner | null): InitialProxy;
@@ -158,136 +61,9 @@ export interface InitialProxy extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  check: TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
-
-  checkcheck: TypedContractMethod<[num: BigNumberish], [boolean], "nonpayable">;
-
-  factoryCreatePair: TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-
-  factorySetValidator: TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-
-  getNum: TypedContractMethod<[], [bigint], "view">;
-
-  initialPlay: TypedContractMethod<
-    [data: BytesLike[]],
-    [boolean],
-    "nonpayable"
-  >;
-
-  initialPlayPayable: TypedContractMethod<
-    [data: BytesLike[]],
-    [boolean],
-    "payable"
-  >;
-
-  poolMint: TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-
-  swapBNCForExactTokens: TypedContractMethod<
-    [
-      pairAddress: AddressLike,
-      outputAmount: BigNumberish,
-      maxToken: BigNumberish,
-      inputToken: AddressLike,
-      outputToken: AddressLike,
-      userAddress: AddressLike
-    ],
-    [boolean],
-    "payable"
-  >;
-
-  swapExactBNCForTokens: TypedContractMethod<
-    [
-      pairAddress: AddressLike,
-      inputAmount: BigNumberish,
-      minToken: BigNumberish,
-      inputToken: AddressLike,
-      outputToken: AddressLike,
-      userAddress: AddressLike
-    ],
-    [boolean],
-    "payable"
-  >;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
-
-  getFunction(
-    nameOrSignature: "check"
-  ): TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "checkcheck"
-  ): TypedContractMethod<[num: BigNumberish], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "factoryCreatePair"
-  ): TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "factorySetValidator"
-  ): TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getNum"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "initialPlay"
-  ): TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
-  getFunction(
-    nameOrSignature: "initialPlayPayable"
-  ): TypedContractMethod<[data: BytesLike[]], [boolean], "payable">;
-  getFunction(
-    nameOrSignature: "poolMint"
-  ): TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "swapBNCForExactTokens"
-  ): TypedContractMethod<
-    [
-      pairAddress: AddressLike,
-      outputAmount: BigNumberish,
-      maxToken: BigNumberish,
-      inputToken: AddressLike,
-      outputToken: AddressLike,
-      userAddress: AddressLike
-    ],
-    [boolean],
-    "payable"
-  >;
-  getFunction(
-    nameOrSignature: "swapExactBNCForTokens"
-  ): TypedContractMethod<
-    [
-      pairAddress: AddressLike,
-      inputAmount: BigNumberish,
-      minToken: BigNumberish,
-      inputToken: AddressLike,
-      outputToken: AddressLike,
-      userAddress: AddressLike
-    ],
-    [boolean],
-    "payable"
-  >;
 
   filters: {};
 }

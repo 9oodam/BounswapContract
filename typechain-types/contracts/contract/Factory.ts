@@ -28,11 +28,9 @@ export interface FactoryInterface extends Interface {
     nameOrSignature:
       | "createPair"
       | "feeTo"
-      | "getCreationCode"
       | "getPairAddress"
       | "setFeeTo"
       | "setFeeToSetter"
-      | "setValidatorPoolArr"
   ): FunctionFragment;
 
   getEvent(nameOrSignatureOrTopic: "PairCreated"): EventFragment;
@@ -42,10 +40,6 @@ export interface FactoryInterface extends Interface {
     values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "feeTo", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getCreationCode",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "getPairAddress",
     values: [AddressLike, AddressLike]
@@ -58,17 +52,9 @@ export interface FactoryInterface extends Interface {
     functionFragment: "setFeeToSetter",
     values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setValidatorPoolArr",
-    values: [AddressLike, AddressLike, AddressLike]
-  ): string;
 
   decodeFunctionResult(functionFragment: "createPair", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "feeTo", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getCreationCode",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "getPairAddress",
     data: BytesLike
@@ -76,10 +62,6 @@ export interface FactoryInterface extends Interface {
   decodeFunctionResult(functionFragment: "setFeeTo", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setFeeToSetter",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setValidatorPoolArr",
     data: BytesLike
   ): Result;
 }
@@ -154,18 +136,16 @@ export interface Factory extends BaseContract {
 
   createPair: TypedContractMethod<
     [tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
+    [string],
     "nonpayable"
   >;
 
   feeTo: TypedContractMethod<[], [string], "view">;
 
-  getCreationCode: TypedContractMethod<[], [string], "view">;
-
   getPairAddress: TypedContractMethod<
     [tokenA: AddressLike, tokenB: AddressLike],
     [string],
-    "nonpayable"
+    "view"
   >;
 
   setFeeTo: TypedContractMethod<[_feeTo: AddressLike], [void], "nonpayable">;
@@ -173,12 +153,6 @@ export interface Factory extends BaseContract {
   setFeeToSetter: TypedContractMethod<
     [_feeToSetter: AddressLike],
     [void],
-    "nonpayable"
-  >;
-
-  setValidatorPoolArr: TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
     "nonpayable"
   >;
 
@@ -190,21 +164,18 @@ export interface Factory extends BaseContract {
     nameOrSignature: "createPair"
   ): TypedContractMethod<
     [tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
+    [string],
     "nonpayable"
   >;
   getFunction(
     nameOrSignature: "feeTo"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "getCreationCode"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
     nameOrSignature: "getPairAddress"
   ): TypedContractMethod<
     [tokenA: AddressLike, tokenB: AddressLike],
     [string],
-    "nonpayable"
+    "view"
   >;
   getFunction(
     nameOrSignature: "setFeeTo"
@@ -212,13 +183,6 @@ export interface Factory extends BaseContract {
   getFunction(
     nameOrSignature: "setFeeToSetter"
   ): TypedContractMethod<[_feeToSetter: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setValidatorPoolArr"
-  ): TypedContractMethod<
-    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
-    [boolean],
-    "nonpayable"
-  >;
 
   getEvent(
     key: "PairCreated"
