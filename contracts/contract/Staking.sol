@@ -45,9 +45,11 @@ contract Staking is Ownable, ReentrancyGuard {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     
     mapping(uint256 => address[]) private stakingUsers; // 풀별 스테이킹 유저 목록
+    uint256 public totalNinjaReward = 0; // 탈주자가 남긴 리워드 누적
 
     uint256 public totalAllocPoint = 0;
     uint256 public startBlock;
+    
 
     event SetDev0Address(address indexed dev0Addr);
     event UpdateBNCPerBlock(uint256 BNCPerBlock);
@@ -241,7 +243,6 @@ contract Staking is Ownable, ReentrancyGuard {
         return poolReward;
     }
 
-
     // LP토큰 예치 
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
         PoolInfo storage pool = poolInfo[_pid];
@@ -307,10 +308,12 @@ contract Staking is Ownable, ReentrancyGuard {
             address userAddress = stakingUsers[_pid][i];
             UserInfo storage stakeUser = userInfo[_pid][userAddress]; // 현재 시점에 스테이킹 중인 유저들
             uint256 userShare = stakeUser.amount * 1e12 / _totalStaked; // 유저 별 스테이크 비율
+            totalNinjaReward += _reward * userShare / 1e12; // 탈주자가 남긴 리워드 누적
             stakeUser.pendingReward += _reward * userShare / 1e12; // 유저 별 보상 재분배 (많이 넣은 사람이 더 많이 받게)
         }
         emit DistributeRewards (_pid, _reward, _totalStaked);
     }
+// struct 블록타임 스탬프, 탈주한 사람의 토탈 LP양, 받아가지 못한 리워드(totalNinjaReward)
 
     // stakingUsers 배열에서 사용자 제거
     function _removeUserFromStakingUsers(uint256 _pid, address _user) internal {
@@ -323,17 +326,20 @@ contract Staking is Ownable, ReentrancyGuard {
             }
         }
     }
+    // totalNinjaRewad 확인
+    function getTotalNinjaReward () public view returns (uint256) {
+        return totalNinjaReward;
+    }
     // 탈주 닌자가 주고 간 예상 보상 (사용자당)
-    function estimatedUserRewardFromNinja (uint256 _pid, address _user) public view returns (uint256) {
+    function estimatedUserRewardFromNinjs(uint256 _pid, address _user) public view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        
+
         uint256 totalStaked = pool.lpToken.balanceOf(address(this));
-        uint256 userShare = user.amount * 1e12 / totalStated; // 유저의 스테이킹 비율
+        uint256 userShare = user.amount * 1e12 / totalStaked; // 유저의 스테이킹 비율
 
         // 예상 탈주 닌자 보상 계산
-        // 보상이 실제로 분배되고 나서 각 유저당 추정 보상
-        uint256 estimatedReward = user.pendingReward * userShare / 1e12;
+        uint256 estimatedReward = totalNinjaReward * userShare / 1e12;
         return estimatedReward;
     }
 
