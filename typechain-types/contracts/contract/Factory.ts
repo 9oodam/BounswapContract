@@ -60,7 +60,7 @@ export interface FactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setValidatorPoolArr",
-    values: [AddressLike, AddressLike]
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "createPair", data: BytesLike): Result;
@@ -177,7 +177,7 @@ export interface Factory extends BaseContract {
   >;
 
   setValidatorPoolArr: TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
     [boolean],
     "nonpayable"
   >;
@@ -215,7 +215,7 @@ export interface Factory extends BaseContract {
   getFunction(
     nameOrSignature: "setValidatorPoolArr"
   ): TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
     [boolean],
     "nonpayable"
   >;

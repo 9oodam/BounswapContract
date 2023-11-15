@@ -24,12 +24,32 @@ import type {
 export interface InitialProxyInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "check"
+      | "checkcheck"
+      | "factoryCreatePair"
+      | "factorySetValidator"
+      | "getNum"
       | "initialPlay"
       | "initialPlayPayable"
+      | "poolMint"
       | "swapBNCForExactTokens"
       | "swapExactBNCForTokens"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "check", values: [BytesLike[]]): string;
+  encodeFunctionData(
+    functionFragment: "checkcheck",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "factoryCreatePair",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "factorySetValidator",
+    values: [AddressLike, AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "getNum", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initialPlay",
     values: [BytesLike[]]
@@ -37,6 +57,10 @@ export interface InitialProxyInterface extends Interface {
   encodeFunctionData(
     functionFragment: "initialPlayPayable",
     values: [BytesLike[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "poolMint",
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "swapBNCForExactTokens",
@@ -61,6 +85,17 @@ export interface InitialProxyInterface extends Interface {
     ]
   ): string;
 
+  decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "checkcheck", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "factoryCreatePair",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "factorySetValidator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getNum", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "initialPlay",
     data: BytesLike
@@ -69,6 +104,7 @@ export interface InitialProxyInterface extends Interface {
     functionFragment: "initialPlayPayable",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "poolMint", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "swapBNCForExactTokens",
     data: BytesLike
@@ -122,6 +158,24 @@ export interface InitialProxy extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  check: TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
+
+  checkcheck: TypedContractMethod<[num: BigNumberish], [boolean], "nonpayable">;
+
+  factoryCreatePair: TypedContractMethod<
+    [tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
+  >;
+
+  factorySetValidator: TypedContractMethod<
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
+  >;
+
+  getNum: TypedContractMethod<[], [bigint], "view">;
+
   initialPlay: TypedContractMethod<
     [data: BytesLike[]],
     [boolean],
@@ -132,6 +186,12 @@ export interface InitialProxy extends BaseContract {
     [data: BytesLike[]],
     [boolean],
     "payable"
+  >;
+
+  poolMint: TypedContractMethod<
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
   >;
 
   swapBNCForExactTokens: TypedContractMethod<
@@ -165,11 +225,41 @@ export interface InitialProxy extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "check"
+  ): TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "checkcheck"
+  ): TypedContractMethod<[num: BigNumberish], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "factoryCreatePair"
+  ): TypedContractMethod<
+    [tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "factorySetValidator"
+  ): TypedContractMethod<
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getNum"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "initialPlay"
   ): TypedContractMethod<[data: BytesLike[]], [boolean], "nonpayable">;
   getFunction(
     nameOrSignature: "initialPlayPayable"
   ): TypedContractMethod<[data: BytesLike[]], [boolean], "payable">;
+  getFunction(
+    nameOrSignature: "poolMint"
+  ): TypedContractMethod<
+    [userAddress: AddressLike, tokenA: AddressLike, tokenB: AddressLike],
+    [boolean],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "swapBNCForExactTokens"
   ): TypedContractMethod<

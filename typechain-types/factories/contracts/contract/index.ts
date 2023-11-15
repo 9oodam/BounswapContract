@@ -9,6 +9,7 @@ export { InitialProxy__factory } from "./InitialProxy__factory";
 export { Pool__factory } from "./Pool__factory";
 export { Staking__factory } from "./Staking__factory";
 export { Swap__factory } from "./Swap__factory";
+export { Test__factory } from "./Test__factory";
 export { Token__factory } from "./Token__factory";
 export { WBNC__factory } from "./WBNC__factory";
 export { Wrapping__factory } from "./Wrapping__factory";

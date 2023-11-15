@@ -47,8 +47,8 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/Factory.sol": {
-      "lastModificationDate": 1699936071878,
-      "contentHash": "d40a059a00784c605f5be8091f8a5b82",
+      "lastModificationDate": 1699958004970,
+      "contentHash": "24573cee4920d1416e9c5f2ac096f313",
       "sourceName": "contracts/contract/Factory.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -84,6 +84,7 @@
         }
       },
       "imports": [
+        "hardhat/console.sol",
         "./Token.sol",
         "./Pool.sol",
         "../utils/Data.sol"
@@ -96,7 +97,7 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/utils/Data.sol": {
-      "lastModificationDate": 1699936624595,
+      "lastModificationDate": 1699942814423,
       "contentHash": "ae0214d5fb6498d7d0a109092b48e675",
       "sourceName": "contracts/utils/Data.sol",
       "solcConfig": {
@@ -191,7 +192,7 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/Pool.sol": {
-      "lastModificationDate": 1699936089436,
+      "lastModificationDate": 1699942814420,
       "contentHash": "86fa523f3abf363b17bb3018932bfe24",
       "sourceName": "contracts/contract/Pool.sol",
       "solcConfig": {
@@ -377,8 +378,8 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/InitialProxy.sol": {
-      "lastModificationDate": 1699936086731,
-      "contentHash": "e8cc7d848aeb2a24fceddac288dc37d3",
+      "lastModificationDate": 1699965428115,
+      "contentHash": "cac16f2118b9dcd85286ea018a64f7ae",
       "sourceName": "contracts/contract/InitialProxy.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -414,6 +415,7 @@
         }
       },
       "imports": [
+        "hardhat/console.sol",
         "./Wrapping.sol",
         "./Factory.sol",
         "./Pool.sol",
@@ -428,7 +430,7 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/Swap.sol": {
-      "lastModificationDate": 1699936096574,
+      "lastModificationDate": 1699942814421,
       "contentHash": "3bc3c366d109f550c7192d3a708e7d63",
       "sourceName": "contracts/contract/Swap.sol",
       "solcConfig": {
@@ -572,7 +574,7 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/Staking.sol": {
-      "lastModificationDate": 1699936093454,
+      "lastModificationDate": 1699943619065,
       "contentHash": "c59a29106b79f44897082cf72c9fb122",
       "sourceName": "contracts/contract/Staking.sol",
       "solcConfig": {
@@ -760,8 +762,8 @@
       ]
     },
     "/Users/damin/Desktop/BSC/contracts/contract/InitialDeploy.sol": {
-      "lastModificationDate": 1699936082851,
-      "contentHash": "998ecef32b4d2b60e8a1de5141947432",
+      "lastModificationDate": 1699944919930,
+      "contentHash": "5c8aea18f1edceea4a5cd9aa921b86a4",
       "sourceName": "contracts/contract/InitialDeploy.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -900,6 +902,98 @@
       ],
       "artifacts": [
         "GovToken"
+      ]
+    },
+    "/Users/damin/Desktop/BSC/node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1699940684511,
+      "contentHash": "896f68942c3a20e9ae3c3c5bfd3add54",
+      "sourceName": "hardhat/console.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates",
+                "devdoc",
+                "userdoc"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "console"
+      ]
+    },
+    "/Users/damin/Desktop/BSC/contracts/contract/Test.sol": {
+      "lastModificationDate": 1700009414062,
+      "contentHash": "17f57dd958516440edded2ac441e9dcb",
+      "sourceName": "contracts/contract/Test.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates",
+                "devdoc",
+                "userdoc"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "hardhat/console.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "Test"
       ]
     }
   }
