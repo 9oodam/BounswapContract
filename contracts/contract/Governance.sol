@@ -8,14 +8,9 @@ contract Governance {
     address private govToken;
     uint private proposalCount;
 
-    // 투표 기간
-    // 15초에 블록 하나 생성된다고 가정할 때 4일
-    // uint private votingPeriod = 23_040;    
-    uint private votingPeriod = 20; 
-
-    // 제안서 통과되는 최소 투표 수
-    // uint private quorumVotes = 1000 * 10**18;
-    uint private quorumVotes = 7 * 10**18;  
+    // 투표 기간 7일
+    // uint private votingPeriod = 7 days; 
+    uint private votingPeriod = 2 minutes; 
 
     // 제안
     struct Proposal {
@@ -23,10 +18,11 @@ contract Governance {
         address proposer;
         bytes title;
         bytes description;
+        uint quorumVotes;
         uint forVotes;
         uint againstVotes;
-        uint startBlock;
-        uint endBlock;
+        uint startTime;
+        uint endTime;
         ProposalState state;
     }
 
@@ -59,7 +55,7 @@ contract Governance {
     }   
 
     // 제안서 제출했을때
-    event ProposalCreated(uint id, address proposer, uint startBlock, uint endBlock, ProposalState state, bytes[] contents);
+    event ProposalCreated(uint id, address proposer, uint quorumVotes, uint startTime, uint endTime, ProposalState state, bytes[] contents);
 
     // 투표했을때
     event VoteCast(address voter, uint proposalId, bool support, uint votes);
@@ -77,22 +73,26 @@ contract Governance {
         require(Token(govToken).balanceOf(_proposer) >= 1, "govToken");
         
         proposalCount++;
+        // 최소 찬성 투표수 계산(현재 거버넌스 토큰 발행량의 10%)
+        uint quorumVotes = Token(govToken).totalSupply() / 10;
 
-        Proposal memory proposal = Proposal(proposalCount, _proposer, contents[0], contents[1], 0, 0, block.number, block.number + votingPeriod, ProposalState.Active);
+        Proposal memory proposal = Proposal(proposalCount, _proposer, contents[0], contents[1], quorumVotes, 0, 0, block.timestamp, block.timestamp + votingPeriod, ProposalState.Active);
         proposals[proposalCount] = proposal;
+        receipts[proposalCount][_proposer].hasVoted = true;
+        receipts[proposalCount][_proposer].support = true;
 
         // 거버넌스 토큰 burn
         Token(govToken)._burn(_proposer, 1 * (10**18));
 
-        emit ProposalCreated(proposal.id, _proposer, proposal.startBlock, proposal.endBlock, proposal.state, contents);
+        emit ProposalCreated(proposal.id, _proposer, proposal.quorumVotes, proposal.startTime, proposal.endTime, proposal.state, contents);
     }
 
-    function getProposals() external view returns (Proposal[] memory, uint) {
+    function getProposals() external view returns (Proposal[] memory) {
         Proposal[] memory proposalArr = new Proposal[](proposalCount);
         for (uint i = 1; i <= proposalCount; i++) {
             proposalArr[i - 1] = proposals[i];
         }
-        return (proposalArr, quorumVotes);
+        return proposalArr;
     }
 
     function getReceipt(uint _id, address voter) external view returns (Receipt memory) {
@@ -133,11 +133,10 @@ contract Governance {
     // 제안서 상태 변경
     function state(uint _id) internal returns (bool) {
         Proposal storage proposal = proposals[_id];
-        if (proposal.state != ProposalState.Active || block.number <= proposal.endBlock) {
+        if (proposal.state != ProposalState.Active || block.timestamp <= proposal.endTime) {
             return false;
         }
-
-        if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes) {
+        if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorumVotes) {
             proposal.state = ProposalState.Defeated; 
             emit ProposalStateChange(_id, ProposalState.Defeated);
             return true;
