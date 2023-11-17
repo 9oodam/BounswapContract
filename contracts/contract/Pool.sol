@@ -100,7 +100,6 @@ contract Pool is Token {
         uint balance1 = Token(token1).balanceOf(address(this));
         uint amount0 = SafeMath.sub(balance0, reserve0);
         uint amount1 = SafeMath.sub(balance1, reserve1);
-        console.log('add liquidity amount : ', amount0, amount1);
 
         bool feeOn = _mintFee(reserve0, reserve1);
         uint liquidity;
@@ -112,8 +111,8 @@ contract Pool is Token {
         }
         require(liquidity > 0, 'INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
-        console.log('lp token minting : ', liquidity);
-        dataParams.addValidatorArr(address(this), to);
+
+        console.log('add liquidity (amount0, amount1, liquidity) : ', amount0, amount1, liquidity);
 
         _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);

@@ -110,7 +110,7 @@ contract PoolConnector {
     }
 
     // 미청구 수수료 청구하는 함수
-    function claimFee(address validator, address pairAddress) public returns (bool) {
+    function claimFee(address validator, address pairAddress) public {
         (uint256 token0FeeAmount, uint256 token1FeeAmount) = dataParams.getUnclaimedFee(validator, pairAddress);
         address token0 = Pool(pairAddress).token0();
         address token1 = Pool(pairAddress).token1();
@@ -119,7 +119,6 @@ contract PoolConnector {
         Token(token0).transferFromTo(pairAddress, validator, token0FeeAmount);
         Token(token1).transferFromTo(pairAddress, validator, token1FeeAmount);
         dataParams.setUnclaimedFee(validator, pairAddress, 0, 0);
-        return true;
     }
 
     // 공급자가 가지고 있는 pool 배열

@@ -33,7 +33,7 @@ contract Factory {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'token is zero address');
         require(getPair[token0][token1] == address(0), 'pair already exists');
-        console.log('available token address, create pair');
+        console.log('available token address, create pair : ', address(this));
 
         // token0, 1로 새로운 pair 주소 생성 & create2로 contract 배포
         // bytes memory bytecode = type(Pool).creationCode;

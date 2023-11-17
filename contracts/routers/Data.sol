@@ -124,8 +124,8 @@ contract Data {
     }
 
     // My pool dash board 목록 반환
-    function getUserPools() public view returns (PoolDetail[] memory) {
-        address[] memory userPool = validatorPoolArr[msg.sender];
+    function getUserPools(address userAddress) public view returns (PoolDetail[] memory) {
+        address[] memory userPool = validatorPoolArr[userAddress];
         PoolDetail[] memory arr = new PoolDetail[](userPool.length);
         for (uint i=0; i<userPool.length; i++) {
             arr[i] = getEachPool(userPool[i]);

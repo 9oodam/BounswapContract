@@ -28,7 +28,7 @@ async function main() {
   const swapAddress = await SwapContract.getAddress();
 
   // 5) Factory, Swap contract address 담아서 Pair.sol 배포 (== InitialProxy를 Pair로 변경)
-  const PairContract = await ethers.deployContract("InitialProxy", [factoryAddress, swapAddress, tokenAddressArr[0]]);
+  const PairContract = await ethers.deployContract("InitialProxy", [factoryAddress, poolConnectorAddress, swapAddress, tokenAddressArr[0]]);
   await PairContract.waitForDeployment();
 
   // 6) Governance
