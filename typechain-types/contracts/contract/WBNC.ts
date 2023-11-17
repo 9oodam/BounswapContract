@@ -38,7 +38,8 @@ export interface WBNCInterface extends Interface {
       | "symbol"
       | "tokenURI"
       | "totalSupply"
-      | "transfer"
+      | "transfer(address,uint256)"
+      | "transfer(address,address,uint256)"
       | "transferFrom"
       | "uri"
       | "withdraw"
@@ -78,7 +79,7 @@ export interface WBNCInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -88,8 +89,12 @@ export interface WBNCInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "transfer",
+    functionFragment: "transfer(address,uint256)",
     values: [AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transfer(address,address,uint256)",
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
@@ -98,7 +103,7 @@ export interface WBNCInterface extends Interface {
   encodeFunctionData(functionFragment: "uri", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish]
+    values: [AddressLike, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "_burn", data: BytesLike): Result;
@@ -116,7 +121,14 @@ export interface WBNCInterface extends Interface {
     functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transfer(address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transfer(address,address,uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "transferFrom",
     data: BytesLike
@@ -264,7 +276,11 @@ export interface WBNC extends BaseContract {
 
   balances: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
-  deposit: TypedContractMethod<[value: BigNumberish], [void], "payable">;
+  deposit: TypedContractMethod<
+    [owner: AddressLike, value: BigNumberish],
+    [void],
+    "payable"
+  >;
 
   name: TypedContractMethod<[], [string], "view">;
 
@@ -274,8 +290,14 @@ export interface WBNC extends BaseContract {
 
   totalSupply: TypedContractMethod<[], [bigint], "view">;
 
-  transfer: TypedContractMethod<
+  "transfer(address,uint256)": TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  "transfer(address,address,uint256)": TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;
@@ -288,7 +310,11 @@ export interface WBNC extends BaseContract {
 
   uri: TypedContractMethod<[], [string], "view">;
 
-  withdraw: TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  withdraw: TypedContractMethod<
+    [owner: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -337,7 +363,11 @@ export interface WBNC extends BaseContract {
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "deposit"
-  ): TypedContractMethod<[value: BigNumberish], [void], "payable">;
+  ): TypedContractMethod<
+    [owner: AddressLike, value: BigNumberish],
+    [void],
+    "payable"
+  >;
   getFunction(
     nameOrSignature: "name"
   ): TypedContractMethod<[], [string], "view">;
@@ -351,9 +381,16 @@ export interface WBNC extends BaseContract {
     nameOrSignature: "totalSupply"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "transfer"
+    nameOrSignature: "transfer(address,uint256)"
   ): TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "transfer(address,address,uint256)"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;
@@ -369,7 +406,11 @@ export interface WBNC extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "withdraw"
-  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  ): TypedContractMethod<
+    [owner: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getEvent(
     key: "Approval"

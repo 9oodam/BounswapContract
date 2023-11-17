@@ -19,7 +19,7 @@ const config: HardhatUserConfig = {
       url: 'https://network.bouncecode.net/',
       accounts: [process.env.DEPLOYER as string],
       chainId: 18328,
-    }
+    },
   },
   docgen: {
     path: './docs',

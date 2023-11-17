@@ -3,5 +3,4 @@
 /* eslint-disable */
 export * as contract from "./contract";
 export * as interfaces from "./interfaces";
-export * as utils from "./utils";
-export { Lock__factory } from "./Lock__factory";
+export * as routers from "./routers";

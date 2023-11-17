@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "../routers/Data.sol";
 import "./Pool.sol";
 import "./Token.sol";
 import "./WBNC.sol";
-import "../utils/Data.sol";
 
 contract Swap {
     Data dataParams;
@@ -95,7 +95,7 @@ contract Swap {
         // 권한 위임 확인 필요
         Token(path[0]).transferFrom(to, pairAddress, inputAmount);
         _swap(to, pairAddress, amount, path, address(this)); // 이 컨트랙트로 wbnc 소유주 바꿈
-        wbncParams.withdraw(amount); // 이 컨트랙트가 보유한 wbnc 소각
+        wbncParams.withdraw(pairAddress, amount); // 이 컨트랙트가 보유한 wbnc 소각
         (bool success, ) = to.call{value: amount}(""); // 사용자에게 bnc 전송
         require(success, "TransferHelper: ETH transfer failed");
     }
@@ -109,7 +109,7 @@ contract Swap {
         require(path[0] == wbncAddress, 'INVALID_PATH'); // input값이 wbnc
         uint amount = getAmountOut(pairAddress, inputAmount, path);
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
-        wbncParams.deposit{value: inputAmount}(inputAmount); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
+        wbncParams.deposit{value: inputAmount}(pairAddress, inputAmount); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
         assert(wbncParams.transfer(pairAddress, inputAmount)); // 발행된 wbnc 소유주를 페어로
         _swap(to, pairAddress, amount, path, to);
     }
@@ -140,7 +140,7 @@ contract Swap {
         require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
         Token(path[0]).transferFrom(to, pairAddress, amount);
         _swap(to, pairAddress, outputAmount, path, address(this));
-        wbncParams.withdraw(outputAmount); // 이 컨트랙트가 보유한 wbnc 소각
+        wbncParams.withdraw(pairAddress, outputAmount); // 이 컨트랙트가 보유한 wbnc 소각
         (bool success, ) = to.call{value: outputAmount}(""); // 사용자에게 bnc 전송
         require(success, "TransferHelper: ETH transfer failed");
     }
@@ -153,7 +153,7 @@ contract Swap {
         require(path[0] == wbncAddress, 'INVALID_PATH');
         uint amount = getAmountIn(pairAddress, outputAmount, path);
         require(amount <= msg.value, 'EXCESSIVE_INPUT_AMOUNT'); // 계산된 input 값보다 사용자가 실제 보낸 value 값이 더 많아야 함
-        wbncParams.deposit{value: amount}(amount);
+        wbncParams.deposit{value: amount}(pairAddress, amount);
         assert(wbncParams.transfer(pairAddress, amount)); // 발행된 wbnc를 페어 소유로
         _swap(to, pairAddress, outputAmount, path, to);
         // 실제 받은 value가 계산된 값보다 큰 경우 사용자에게 돌려줌
@@ -214,21 +214,24 @@ contract Swap {
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(userAddress, amount0In, amount1In, amount0Out, amount1Out, pairAddress);
+
+        // Swap의 0.3% 수수료를 풀 공급자에게 배분
+        addUnclaimedFee(pairAddress, SafeMath.mul(amount0In, 3), SafeMath.mul(amount1In, 3));
     }
 
     // unclaimed fee 누적시키기
-    // function addUnclaimedFee(address pairAddress, address userAddress) internal {
-    //     for (uint i = 0; i < dataParams.validatorArr[pairAddress].length; i++) {
-    //         uint userLiquidity = Pool(pairAddress).balanceOf()
+    function addUnclaimedFee(address pairAddress, uint fee0, uint fee1) internal {
+        for (uint i = 0; i < dataParams.validatorArrLength(pairAddress); i++) {
+            address validator = dataParams.getValidatorArr(pairAddress)[i]; // 공급자
+            uint liquidity = Pool(pairAddress).totalSupply(); // lp token 총량
+            uint userLiquidity = Pool(pairAddress).balanceOf(validator); // 공급자의 Lp token 개수
+            (uint256 lastUserFee0, uint256 lastUserFee1) = dataParams.getUnclaimedFee(validator, pairAddress); // 최근 누적된 보상
 
-    //         userlUnclaimedFees[validatorArr[i]].token0Amount +=
-    //             (SafeMath.mul(amount0In, 3) * userLiquidity) /
-    //             liquidity;
-    //         userlUnclaimedFees[validatorArr[i]].token1Amount +=
-    //             (SafeMath.mul(amount1In, 3) * userLiquidity) /
-    //             liquidity;
-    //         userlUnclaimedFees[validatorArr[i]].token0Amount += amount0In.mul(3) * userLiquidity / liquidity;
-    //         userlUnclaimedFees[validatorArr[i]].token1Amount += amount1In.mul(3) * userLiquidity / liquidity;
-        
-    // }
+            // swap 한 수량의 0.3%를 유저의 유동성만큼 계산해서 누적시키기
+            uint256 userFee0 = (fee0 * userLiquidity) / liquidity + lastUserFee0;
+            uint256 userFee1 = (fee1 * userLiquidity) / liquidity + lastUserFee1;
+            
+            dataParams.setUnclaimedFee(validator, pairAddress, userFee0, userFee1);
+        }
+    }
 }

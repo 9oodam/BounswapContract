@@ -20,6 +20,8 @@ contract Token is IERC20 {
         symbol = _symbol;
         uri = tokenURI(_uri);
 
+        address deployer = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+
         _mint(msg.sender, _amount * (10 ** decimals));
     }
 
@@ -43,6 +45,11 @@ contract Token is IERC20 {
     // 토큰 이전
     function transfer(address to, uint amount) public returns (bool) {
         balances[msg.sender] -= amount;
+        balances[to] += amount;
+        return true;
+    }
+    function transfer(address from, address to, uint amount) public returns (bool) {
+        balances[from] -= amount;
         balances[to] += amount;
         return true;
     }

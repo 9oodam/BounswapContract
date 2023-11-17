@@ -26,41 +26,21 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Factory__factory>;
     getContractFactory(
-      name: "Governance",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Governance__factory>;
-    getContractFactory(
-      name: "GovToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.GovToken__factory>;
-    getContractFactory(
       name: "InitialDeploy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.InitialDeploy__factory>;
-    getContractFactory(
-      name: "InitialProxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.InitialProxy__factory>;
-    getContractFactory(
-      name: "LPToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.LPToken__factory>;
     getContractFactory(
       name: "Pool",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Pool__factory>;
     getContractFactory(
-      name: "Staking",
+      name: "PoolConnector",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Staking__factory>;
+    ): Promise<Contracts.PoolConnector__factory>;
     getContractFactory(
       name: "Swap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Swap__factory>;
-    getContractFactory(
-      name: "Test",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Test__factory>;
     getContractFactory(
       name: "Token",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -70,21 +50,29 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WBNC__factory>;
     getContractFactory(
-      name: "Wrapping",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Wrapping__factory>;
-    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
-      name: "Lock",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Lock__factory>;
-    getContractFactory(
       name: "Data",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Data__factory>;
+    getContractFactory(
+      name: "Governance",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Governance__factory>;
+    getContractFactory(
+      name: "InitialProxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.InitialProxy__factory>;
+    getContractFactory(
+      name: "Pair",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Pair__factory>;
+    getContractFactory(
+      name: "Staking",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Staking__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -102,50 +90,25 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Factory>;
     getContractAt(
-      name: "Governance",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Governance>;
-    getContractAt(
-      name: "GovToken",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.GovToken>;
-    getContractAt(
       name: "InitialDeploy",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.InitialDeploy>;
-    getContractAt(
-      name: "InitialProxy",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.InitialProxy>;
-    getContractAt(
-      name: "LPToken",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.LPToken>;
     getContractAt(
       name: "Pool",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.Pool>;
     getContractAt(
-      name: "Staking",
+      name: "PoolConnector",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
-    ): Promise<Contracts.Staking>;
+    ): Promise<Contracts.PoolConnector>;
     getContractAt(
       name: "Swap",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.Swap>;
-    getContractAt(
-      name: "Test",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Test>;
     getContractAt(
       name: "Token",
       address: string | ethers.Addressable,
@@ -157,25 +120,35 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.WBNC>;
     getContractAt(
-      name: "Wrapping",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Wrapping>;
-    getContractAt(
       name: "IERC20",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
     getContractAt(
-      name: "Lock",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Lock>;
-    getContractAt(
       name: "Data",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.Data>;
+    getContractAt(
+      name: "Governance",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Governance>;
+    getContractAt(
+      name: "InitialProxy",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.InitialProxy>;
+    getContractAt(
+      name: "Pair",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Pair>;
+    getContractAt(
+      name: "Staking",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Staking>;
 
     deployContract(
       name: "Ownable",
@@ -190,41 +163,21 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Factory>;
     deployContract(
-      name: "Governance",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Governance>;
-    deployContract(
-      name: "GovToken",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.GovToken>;
-    deployContract(
       name: "InitialDeploy",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialDeploy>;
-    deployContract(
-      name: "InitialProxy",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.InitialProxy>;
-    deployContract(
-      name: "LPToken",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.LPToken>;
     deployContract(
       name: "Pool",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Pool>;
     deployContract(
-      name: "Staking",
+      name: "PoolConnector",
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Staking>;
+    ): Promise<Contracts.PoolConnector>;
     deployContract(
       name: "Swap",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Swap>;
-    deployContract(
-      name: "Test",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Test>;
     deployContract(
       name: "Token",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -234,21 +187,29 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.WBNC>;
     deployContract(
-      name: "Wrapping",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Wrapping>;
-    deployContract(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC20>;
     deployContract(
-      name: "Lock",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Lock>;
-    deployContract(
       name: "Data",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Data>;
+    deployContract(
+      name: "Governance",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Governance>;
+    deployContract(
+      name: "InitialProxy",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.InitialProxy>;
+    deployContract(
+      name: "Pair",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Pair>;
+    deployContract(
+      name: "Staking",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Staking>;
 
     deployContract(
       name: "Ownable",
@@ -266,50 +227,25 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Factory>;
     deployContract(
-      name: "Governance",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Governance>;
-    deployContract(
-      name: "GovToken",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.GovToken>;
-    deployContract(
       name: "InitialDeploy",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialDeploy>;
-    deployContract(
-      name: "InitialProxy",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.InitialProxy>;
-    deployContract(
-      name: "LPToken",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.LPToken>;
     deployContract(
       name: "Pool",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Pool>;
     deployContract(
-      name: "Staking",
+      name: "PoolConnector",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Staking>;
+    ): Promise<Contracts.PoolConnector>;
     deployContract(
       name: "Swap",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Swap>;
-    deployContract(
-      name: "Test",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Test>;
     deployContract(
       name: "Token",
       args: any[],
@@ -321,25 +257,35 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.WBNC>;
     deployContract(
-      name: "Wrapping",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Wrapping>;
-    deployContract(
       name: "IERC20",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC20>;
     deployContract(
-      name: "Lock",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Lock>;
-    deployContract(
       name: "Data",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Data>;
+    deployContract(
+      name: "Governance",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Governance>;
+    deployContract(
+      name: "InitialProxy",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.InitialProxy>;
+    deployContract(
+      name: "Pair",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Pair>;
+    deployContract(
+      name: "Staking",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Staking>;
 
     // default types
     getContractFactory(
