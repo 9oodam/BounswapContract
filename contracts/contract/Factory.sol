@@ -54,9 +54,10 @@ contract Factory {
                 charIndex++;
             }
         }
-        string memory combinedSymbol = string(sliced);   
+        string memory combinedSymbol = string(sliced);
+        string memory uri = string(abi.encodePacked(combinedSymbol, ".png"));
 
-        Pool pairInstance = new Pool(dataAddress, combinedSymbol, combinedSymbol);
+        Pool pairInstance = new Pool(dataAddress, combinedSymbol, combinedSymbol, uri);
         address pairAddress = address(pairInstance);
         Pool(pairAddress).initialize(token0, token1);
 

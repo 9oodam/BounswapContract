@@ -137,28 +137,28 @@ export interface SwapInterface extends Interface {
 
 export namespace SwapEvent {
   export type InputTuple = [
-    sender: AddressLike,
+    user: AddressLike,
+    pair: AddressLike,
     amount0In: BigNumberish,
     amount1In: BigNumberish,
     amount0Out: BigNumberish,
-    amount1Out: BigNumberish,
-    to: AddressLike
+    amount1Out: BigNumberish
   ];
   export type OutputTuple = [
-    sender: string,
+    user: string,
+    pair: string,
     amount0In: bigint,
     amount1In: bigint,
     amount0Out: bigint,
-    amount1Out: bigint,
-    to: string
+    amount1Out: bigint
   ];
   export interface OutputObject {
-    sender: string;
+    user: string;
+    pair: string;
     amount0In: bigint;
     amount1In: bigint;
     amount0Out: bigint;
     amount1Out: bigint;
-    to: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -413,7 +413,7 @@ export interface Swap extends BaseContract {
   >;
 
   filters: {
-    "Swap(address,uint256,uint256,uint256,uint256,address)": TypedContractEvent<
+    "Swap(address,address,uint256,uint256,uint256,uint256)": TypedContractEvent<
       SwapEvent.InputTuple,
       SwapEvent.OutputTuple,
       SwapEvent.OutputObject

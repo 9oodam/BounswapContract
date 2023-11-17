@@ -40,7 +40,7 @@ contract Pool is Token {
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    constructor(address _dataAddress, string memory _name, string memory _symbol) Token(_name, _symbol, 0, "") {
+    constructor(address _dataAddress, string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
         factory = msg.sender;
         dataParams = Data(_dataAddress);
     }

@@ -17,11 +17,11 @@ contract InitialDeploy {
 
     constructor(address _dataAddress, address _factyroAddress, address _poolConnectorAddress) {
         // 토큰 컨트랙트 생성 및 배포
-        WBNC wbnc = new WBNC('WBNC', 'WBNC', 10000, "");
-        Token gov = new Token('GOV', 'GOV', 0, "");
-		Token eth = new Token('ETH', 'ETH', 10000, "");
-		Token usdt = new Token('USDT', 'USDT', 10000, "");
-		Token bnb = new Token ('BNB', 'BNB', 10000, "");
+        WBNC wbnc = new WBNC('WBNC', 'WBNC', 10000, "BNC.png");
+        Token gov = new Token('GOV', 'GOV', 0, "GOV.png");
+		Token eth = new Token('ETH', 'ETH', 10000, "ETH.png");
+		Token usdt = new Token('USDT', 'USDT', 10000, "USDT.png");
+		Token bnb = new Token ('BNB', 'BNB', 10000, "BNB.png");
 
         factoryParams = Factory(_factyroAddress);
         dataParams = Data(_dataAddress);

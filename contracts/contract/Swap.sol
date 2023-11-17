@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "hardhat/console.sol";
+
 import "../routers/Data.sol";
 import "./Pool.sol";
 import "./Token.sol";
@@ -27,12 +29,12 @@ contract Swap {
     }
 
     event Swap(
-        address indexed sender,
+        address indexed user,
+        address indexed pair,
         uint amount0In,
         uint amount1In,
         uint amount0Out,
-        uint amount1Out,
-        address indexed to
+        uint amount1Out
     );
 
     // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
@@ -213,7 +215,8 @@ contract Swap {
         }
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(userAddress, amount0In, amount1In, amount0Out, amount1Out, pairAddress);
+        emit Swap(userAddress, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        console.log('swap succeed : ', amount0In+amount0Out, amount1In+amount1Out);
 
         // Swap의 0.3% 수수료를 풀 공급자에게 배분
         addUnclaimedFee(pairAddress, SafeMath.mul(amount0In, 3), SafeMath.mul(amount1In, 3));
