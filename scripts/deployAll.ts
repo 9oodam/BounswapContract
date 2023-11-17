@@ -36,37 +36,29 @@ async function main() {
   await GovContract.waitForDeployment();
 
   // 7) Staking
-  // const StakingContract = await ethers.deployContract("Staking", [])
+  const BNCTokenAddress = tokenAddressArr[0]; 
+  const dev0Addr = "0x0000000000000000000000000000000000000002"; 
+  const dev0Percent = 1000; 
+  const stakingPercent = 5000; 
+  const BNCPerBlock = 1; // 1 BNC
+  const startBlock = 123456; 
+  const initialOwner = "0x0000000000000000000000000000000000000003"; // Owner
   
-
-
-  // ---- staking ---- 
-    
-    const BNCTokenAddress = tokenAddressArr[0]; 
-    const dev0Addr = "0x0000000000000000000000000000000000000002"; 
-    const dev0Percent = 1000; 
-    const stakingPercent = 5000; 
-    const BNCPerBlock = 1; // 1 BNC
-    const startBlock = 123456; 
-    const initialOwner = "0x0000000000000000000000000000000000000003"; // Owner
-  
-    const StakingContract = await ethers.deployContract("Staking", [
-      BNCTokenAddress,
-      dataAddress,
-      dev0Addr,
-      dev0Percent,
-      stakingPercent,
-      BNCPerBlock,
-      startBlock,
-      initialOwner
-    ]);
-    await StakingContract.waitForDeployment();
-    const stakingAddress = StakingContract.getAddress();
-    // ------------------
+  const StakingContract = await ethers.deployContract("Staking", [
+    BNCTokenAddress,
+    dataAddress,
+    dev0Addr,
+    dev0Percent,
+    stakingPercent,
+    BNCPerBlock,
+    startBlock,
+    initialOwner
+  ]);
+  await StakingContract.waitForDeployment();
+  const stakingAddress = await StakingContract.getAddress();
   
   console.log(
-    tokenAddressArr,
-    pairAddressArr
+    stakingAddress
   )
 }
 

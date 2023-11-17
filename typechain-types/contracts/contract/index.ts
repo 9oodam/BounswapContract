@@ -3,6 +3,7 @@
 /* eslint-disable */
 export type { Factory } from "./Factory";
 export type { InitialDeploy } from "./InitialDeploy";
+export type { LPToken } from "./LPToken";
 export type { Pool } from "./Pool";
 export type { PoolConnector } from "./PoolConnector";
 export type { Swap } from "./Swap";

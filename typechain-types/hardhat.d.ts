@@ -30,6 +30,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.InitialDeploy__factory>;
     getContractFactory(
+      name: "LPToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LPToken__factory>;
+    getContractFactory(
       name: "Pool",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Pool__factory>;
@@ -66,10 +70,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.InitialProxy__factory>;
     getContractFactory(
-      name: "Pair",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Pair__factory>;
-    getContractFactory(
       name: "Staking",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Staking__factory>;
@@ -95,6 +95,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.InitialDeploy>;
     getContractAt(
+      name: "LPToken",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LPToken>;
+    getContractAt(
       name: "Pool",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -139,11 +144,6 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.InitialProxy>;
-    getContractAt(
-      name: "Pair",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Pair>;
     getContractAt(
       name: "Staking",
       address: string | ethers.Addressable,
@@ -167,6 +167,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialDeploy>;
     deployContract(
+      name: "LPToken",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LPToken>;
+    deployContract(
       name: "Pool",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Pool>;
@@ -202,10 +206,6 @@ declare module "hardhat/types/runtime" {
       name: "InitialProxy",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialProxy>;
-    deployContract(
-      name: "Pair",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Pair>;
     deployContract(
       name: "Staking",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -232,6 +232,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialDeploy>;
     deployContract(
+      name: "LPToken",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LPToken>;
+    deployContract(
       name: "Pool",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -276,11 +281,6 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.InitialProxy>;
-    deployContract(
-      name: "Pair",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.Pair>;
     deployContract(
       name: "Staking",
       args: any[],
