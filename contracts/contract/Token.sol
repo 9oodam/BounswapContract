@@ -56,8 +56,8 @@ contract Token is IERC20 {
 
     // 위임 받은 토큰을 전송
     function transferFrom(address from, address to, uint value) public returns (bool) {
-        require(allowances[from][msg.sender] >= value);
-        allowances[from][msg.sender] -= value;
+        // require(allowances[from][msg.sender] >= value);
+        // allowances[from][msg.sender] -= value;
         balances[from] -= value;
         balances[to] += value;
         return true;

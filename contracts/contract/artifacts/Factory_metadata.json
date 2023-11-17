@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.20+commit.a1b79de6"
+		"version": "0.8.23+commit.f704f362"
 	},
 	"language": "Solidity",
 	"output": {
@@ -68,9 +68,9 @@
 				"name": "createPair",
 				"outputs": [
 					{
-						"internalType": "address",
-						"name": "pair",
-						"type": "address"
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -78,33 +78,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "dataAddress",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
 				"name": "feeTo",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "feeToSetter",
 				"outputs": [
 					{
 						"internalType": "address",
@@ -132,16 +106,16 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "",
+						"name": "tokenA",
 						"type": "address"
 					},
 					{
 						"internalType": "address",
-						"name": "",
+						"name": "tokenB",
 						"type": "address"
 					}
 				],
-				"name": "getPair",
+				"name": "getPairAddress",
 				"outputs": [
 					{
 						"internalType": "address",
@@ -149,7 +123,7 @@
 						"type": "address"
 					}
 				],
-				"stateMutability": "view",
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -175,6 +149,30 @@
 				],
 				"name": "setFeeToSetter",
 				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "tokenA",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "tokenB",
+						"type": "address"
+					}
+				],
+				"name": "setValidatorPoolArr",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			}
@@ -207,43 +205,43 @@
 	},
 	"sources": {
 		"contracts/contract/Factory.sol": {
-			"keccak256": "0x2d55436e266a215139189c088cd0e23058ed15576c96672c2e70c358938785ea",
+			"keccak256": "0xec58374dc9f51c0160ae8378175a297cefc15f0ba6eb52816b99d9f6acbd21e8",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8c33944a1657ef685d0903501cb6f62e29107206ac679756d5e955aad8f7ddb8",
-				"dweb:/ipfs/QmdyvW39R9cGWkd53vfJdC1ftzKjKBqTCcGfiSjTvjZZQL"
+				"bzz-raw://b077e0225ea556f0fe70a25cf8a712e678f8513ee58e2303ead59a8878c545e6",
+				"dweb:/ipfs/QmeKt5Z8xZKAYzqA2qAENKt9mX7UA7GDd9DSbz6uXP3xNi"
 			]
 		},
 		"contracts/contract/Pool.sol": {
-			"keccak256": "0xedaa8389f8775bd1036a375dad81986ba6d7844dab7fc14a8625e8a8f4a47ddd",
+			"keccak256": "0x9c80ddd9799bd48c4daaebbc4c3eddf3e68a4b69e18a2e36a55d99c8b2738fdf",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d0d7c47577bc7269e2a57813d0fdd2c824104a14a138db4522e4b6a6af298204",
-				"dweb:/ipfs/QmUVq6BMJPrDvWBC7M99VVMUZZEXYLnUnELmYUaUJvTDD1"
+				"bzz-raw://6ca45932dcfb1ecf12db69960040993dc4f88349333fa2240b6a0dd10fa19302",
+				"dweb:/ipfs/Qmd7i5BnSyDjbJs69zyj7zMxuV4zByJVSFggVWKwaiDsAy"
 			]
 		},
 		"contracts/contract/Token.sol": {
-			"keccak256": "0x02c719255cd622b770b19345f443ea71d9bb5e6257789369079c380c59a92bd0",
+			"keccak256": "0x825dea1d51cc37eadad1482195cf313b7fb81214b1311b37f34fdfd8f52d2228",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://07278685f346353cdbe3156a83e25769f808cee485b7c4c0401e9d316bb055c3",
-				"dweb:/ipfs/QmQ8ZCGQQXrEKv4ZCp62oVyhovEf7ypKyw5nsf8Dwdp7hx"
+				"bzz-raw://49feae859613d8f6c15bb81f276819e64531c10acf17e9db01dbf105a1348b98",
+				"dweb:/ipfs/Qmb5YtUhVRQ85gsFRPfo4jL8n2qEuwMFubF1yD5nTqFkEj"
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
-			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"keccak256": "0x4ce6e9f30dba5ae30f26321dc851b669caf3f953f8c832304d05df2a523f1af3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
-				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+				"bzz-raw://eb24de66bbfa42093a20d448cb2564655525cba0342035a42a37654e5d922deb",
+				"dweb:/ipfs/QmYgnFHamrgy5qurrxVLR1qDb7MirvGEoxCVwqiF1YvDMf"
 			]
 		},
 		"contracts/libraries/Math.sol": {
-			"keccak256": "0x53158ad394e57efd1bbf1835c1ca172e4abfa1a6153f45fb606b01b68440029a",
+			"keccak256": "0x7b7b9666290f5fb60b3207e05d369f36029d62bed83150fd1f35eb7e8f262020",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://bbd724ac860d4cf41d8f14c910043402dc997b6912ca1cef2fc0ea77f36db3db",
-				"dweb:/ipfs/QmSRmEpW9p7RU92twSFDJPJB4K55kjiBvTr8oDtQ2iG4sE"
+				"bzz-raw://51312a724585dcde3b7daa7bc2a56eaa73bd468400fcf45d20b143b0cce3b34f",
+				"dweb:/ipfs/QmNZfdhHY6xPTHMo6Be8v5EU4JAQZgje2Cx4bfhwS27eoD"
 			]
 		},
 		"contracts/libraries/SafeMath.sol": {
@@ -255,11 +253,11 @@
 			]
 		},
 		"contracts/utils/Data.sol": {
-			"keccak256": "0x7290880a665e33d0063e16da8732c3868ab7a9463a1d0ca63920fb1b608199a2",
+			"keccak256": "0x124d6422da7b8b3f0fc67ddc9382a3978869b7a57a827ded0796a3b3ad000a3e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9ffa0ae58311ea21a2be3ad69b9d907be9ed38c8cf5ce955160ee0e7a750a776",
-				"dweb:/ipfs/QmNQb8ozeUmkneZnbqdaCMPDVxfhgvKuv5GJY22G3AGYyk"
+				"bzz-raw://1f3939429b9ed40f58afa796118392d2c00c8a4957c9d694ceca37bb80404b9a",
+				"dweb:/ipfs/QmVvVbzF7Qj32GJaXsnXMSBt588JgqL5YtvmPsdFm4Juev"
 			]
 		}
 	},

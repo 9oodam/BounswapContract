@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.20+commit.a1b79de6"
+		"version": "0.8.23+commit.f704f362"
 	},
 	"language": "Solidity",
 	"output": {
@@ -266,16 +266,11 @@
 						"internalType": "uint256",
 						"name": "value",
 						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "userAddress",
-						"type": "address"
 					}
 				],
 				"name": "deposit",
 				"outputs": [],
-				"stateMutability": "nonpayable",
+				"stateMutability": "payable",
 				"type": "function"
 			},
 			{
@@ -462,27 +457,27 @@
 	},
 	"sources": {
 		"contracts/contract/Token.sol": {
-			"keccak256": "0x02c719255cd622b770b19345f443ea71d9bb5e6257789369079c380c59a92bd0",
+			"keccak256": "0x825dea1d51cc37eadad1482195cf313b7fb81214b1311b37f34fdfd8f52d2228",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://07278685f346353cdbe3156a83e25769f808cee485b7c4c0401e9d316bb055c3",
-				"dweb:/ipfs/QmQ8ZCGQQXrEKv4ZCp62oVyhovEf7ypKyw5nsf8Dwdp7hx"
+				"bzz-raw://49feae859613d8f6c15bb81f276819e64531c10acf17e9db01dbf105a1348b98",
+				"dweb:/ipfs/Qmb5YtUhVRQ85gsFRPfo4jL8n2qEuwMFubF1yD5nTqFkEj"
 			]
 		},
 		"contracts/contract/WBNC.sol": {
-			"keccak256": "0x402f4c775c18382adcedfc3ae8954001035bea9dbaca807c3adebfff6d3766fa",
+			"keccak256": "0x154f13fa7f34f198dbfd818dbd8c10b10d50d9b5d20b4996355d0423ae753d2e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d4c9fc430b3de1efe93c08800c7ad88ba729add242fd3dafdf40bbd36a3870ea",
-				"dweb:/ipfs/QmNd3yDQbWtoKaRHyjmtfuEJLByEQEM4BgauaCdLDYb6BM"
+				"bzz-raw://015c94c64313844893c80827224d8c24df76e4f6ae2570abaf4e901b85ec407a",
+				"dweb:/ipfs/QmWgRwDLqs8jUbUZiweRiiPJhdZn7EymwipaCQ4pQXux4y"
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
-			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"keccak256": "0x4ce6e9f30dba5ae30f26321dc851b669caf3f953f8c832304d05df2a523f1af3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
-				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+				"bzz-raw://eb24de66bbfa42093a20d448cb2564655525cba0342035a42a37654e5d922deb",
+				"dweb:/ipfs/QmYgnFHamrgy5qurrxVLR1qDb7MirvGEoxCVwqiF1YvDMf"
 			]
 		}
 	},

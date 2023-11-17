@@ -35,7 +35,7 @@ async function main() {
   
     const StakingContract = await ethers.deployContract("Staking", [
       BNCTokenAddress,
-      dataAddress,
+      // dataAddress,
       dev0Addr,
       dev0Percent,
       stakingPercent,

@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.20+commit.a1b79de6"
+		"version": "0.8.23+commit.f704f362"
 	},
 	"language": "Solidity",
 	"output": {
@@ -10,11 +10,6 @@
 					{
 						"internalType": "address",
 						"name": "_BNCToken",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "_data",
 						"type": "address"
 					},
 					{
@@ -82,6 +77,37 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_allocPoint",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_lpToken",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "stakingPoolStartTime",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "stakingEndTime",
+						"type": "uint256"
+					}
+				],
+				"name": "AddStakingPool",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "user",
@@ -122,6 +148,12 @@
 						"indexed": false,
 						"internalType": "uint256",
 						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "stakingStartTime",
 						"type": "uint256"
 					}
 				],
@@ -176,6 +208,68 @@
 					}
 				],
 				"name": "EmergencyWithdraw",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_pendingBNC",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_userBlockRewardPerBlock",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_estimatedUserRewardFromNinjs",
+						"type": "uint256"
+					}
+				],
+				"name": "MyAllReward",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_Ninja",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_totalLPToken",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_totalNinjaReward",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_stakingLeftTime",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_ninjaRewardRate",
+						"type": "uint256"
+					}
+				],
+				"name": "NinjaLiftInfo",
 				"type": "event"
 			},
 			{
@@ -269,6 +363,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "AlltotalNinjaReward",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "BNC",
 				"outputs": [
 					{
@@ -317,6 +424,11 @@
 						"internalType": "address",
 						"name": "_lpToken",
 						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_endDays",
+						"type": "uint256"
 					}
 				],
 				"name": "addStakingPool",
@@ -411,6 +523,86 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "estimatedUserRewardFromNinjs",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "getAccBNCPerShareFromUser",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllTotalNinjaReward",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_lasttotalNinjaRewardRate",
+						"type": "uint256"
+					}
+				],
+				"name": "getLastNinjaRewardInfo",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
 						"name": "_from",
 						"type": "uint256"
 					},
@@ -426,6 +618,25 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					}
+				],
+				"name": "getStakingUsers",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
 					}
 				],
 				"stateMutability": "view",
@@ -449,6 +660,87 @@
 				"name": "massUpdatePools",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					}
+				],
+				"name": "maturedWithdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "myAllReward",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "ninjaInfo",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "totalLPToken",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalNinjaReward",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stakingLeftTime",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -489,6 +781,25 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					}
+				],
+				"name": "perBlockReward",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "percentDec",
 				"outputs": [
@@ -512,7 +823,7 @@
 				"name": "poolInfo",
 				"outputs": [
 					{
-						"internalType": "contract LPToken",
+						"internalType": "contract IERC20",
 						"name": "lpToken",
 						"type": "address"
 					},
@@ -533,7 +844,12 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "stakingEndTime",
+						"name": "stakingPoolEndTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stakingPoolStartTime",
 						"type": "uint256"
 					}
 				],
@@ -558,6 +874,25 @@
 				"name": "renounceOwnership",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					}
+				],
+				"name": "rewardPer100Tokens",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -641,6 +976,30 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "stakingUsers",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "startBlock",
 				"outputs": [
@@ -698,11 +1057,59 @@
 						"internalType": "uint256",
 						"name": "_pid",
 						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "updatePendingBNC",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
 					}
 				],
 				"name": "updatePool",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_pid",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "userBlockRewardPerBlock",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -733,6 +1140,11 @@
 					{
 						"internalType": "uint256",
 						"name": "pendingReward",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stakingStartTime",
 						"type": "uint256"
 					}
 				],
@@ -844,19 +1256,19 @@
 			]
 		},
 		"contracts/contract/Factory.sol": {
-			"keccak256": "0x2cefc645569432c37a139b892023fecbed184bd99fab5c712519d24b98ad81ad",
+			"keccak256": "0xec58374dc9f51c0160ae8378175a297cefc15f0ba6eb52816b99d9f6acbd21e8",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c43592e2f22809097e14c133fd8bd6ddf41ccf765af2082ce589ed61a3734e59",
-				"dweb:/ipfs/QmRSJEMs677WWBUkFvtV3LRGZNJz49ZhFT2oo2mawvpsm9"
+				"bzz-raw://b077e0225ea556f0fe70a25cf8a712e678f8513ee58e2303ead59a8878c545e6",
+				"dweb:/ipfs/QmeKt5Z8xZKAYzqA2qAENKt9mX7UA7GDd9DSbz6uXP3xNi"
 			]
 		},
 		"contracts/contract/LPToken.sol": {
-			"keccak256": "0x76b0080f321f31389f2e2bafdb5f617ef7f04a9302804d6218e7ca878134b0dd",
+			"keccak256": "0xf160c9300f6c6de7ba71633707759c7ae4c444fb0fd358e6a60c8460dd0e691d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9ea48273d2c2f4405e9dc0d451a08c341ea321317676f05e4221ab2335f2809c",
-				"dweb:/ipfs/QmUDS9FpLjKx1b6ciobAAdgN78nwXqeJQNUSiz8L6deoKA"
+				"bzz-raw://42499f419618c87df016957b546af0364eb574640df010502daf433b30665961",
+				"dweb:/ipfs/QmVr5gTQfgpcmqPbKA6KSFx3DZcPb1py6yFzBTJrjs58Gq"
 			]
 		},
 		"contracts/contract/Pool.sol": {
@@ -868,35 +1280,35 @@
 			]
 		},
 		"contracts/contract/Staking.sol": {
-			"keccak256": "0x5be5ba649b2b40aeb9db8b916ace2e6b6ac58086e9bc492bea2d892527b2e5dd",
+			"keccak256": "0x7816d80a8173f8a1ed1eb8d68d8fc96393cbddffe73ab5d87413de72e3f162df",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://025eb02d19fb2b27cb92eb07e3523fc62e98d1a020c08862b7c5508e96199391",
-				"dweb:/ipfs/QmRCKQBSj37Btv7nYytaapLQoSf8KBZvEYVHCaQg4wE7rW"
+				"bzz-raw://30f6e6f9cf96dae461ea23d12773b5b18ed4eefd4ad356f86ec7e4ca084c1ee9",
+				"dweb:/ipfs/QmU7mTUMcbHBayrdSqPSMyeGgSvT1QAcanPgJZqS3MLZrP"
 			]
 		},
 		"contracts/contract/Token.sol": {
-			"keccak256": "0x789f9ea128d54c6b8e3a5bef140fcdd31c463e5739fc3ec2509fca38d0e7034a",
+			"keccak256": "0x825dea1d51cc37eadad1482195cf313b7fb81214b1311b37f34fdfd8f52d2228",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://cb30cec9bb1dd7651a4c01a043b9d1c5d9d4545ee0447ab7aaaecc4883f3b38f",
-				"dweb:/ipfs/QmZb7TvpVKeKepdvUoiCqbB2Q8h3NNSUkz46iTzKdPseEm"
+				"bzz-raw://49feae859613d8f6c15bb81f276819e64531c10acf17e9db01dbf105a1348b98",
+				"dweb:/ipfs/Qmb5YtUhVRQ85gsFRPfo4jL8n2qEuwMFubF1yD5nTqFkEj"
 			]
 		},
 		"contracts/contract/WBNC.sol": {
-			"keccak256": "0xbea1bc1dacd3cc56d8d483c9bb6ec126441426a1a68e7b18f398777bf676b3e2",
+			"keccak256": "0x154f13fa7f34f198dbfd818dbd8c10b10d50d9b5d20b4996355d0423ae753d2e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://34f04c5dc9e9c444b7884cc3fe4a1493bd758e94c16e2e8d4492b4ea48a6dda2",
-				"dweb:/ipfs/QmRVgwWypN1CeuEi4U2pqXmdd66ECz3SVMDUjA3tAtuxqd"
+				"bzz-raw://015c94c64313844893c80827224d8c24df76e4f6ae2570abaf4e901b85ec407a",
+				"dweb:/ipfs/QmWgRwDLqs8jUbUZiweRiiPJhdZn7EymwipaCQ4pQXux4y"
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
-			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"keccak256": "0x4ce6e9f30dba5ae30f26321dc851b669caf3f953f8c832304d05df2a523f1af3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
-				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+				"bzz-raw://eb24de66bbfa42093a20d448cb2564655525cba0342035a42a37654e5d922deb",
+				"dweb:/ipfs/QmYgnFHamrgy5qurrxVLR1qDb7MirvGEoxCVwqiF1YvDMf"
 			]
 		},
 		"contracts/libraries/Math.sol": {
@@ -916,11 +1328,11 @@
 			]
 		},
 		"contracts/utils/Data.sol": {
-			"keccak256": "0xa90928144aff71f96be29db01a49de96bf0d765f224311f7ca0c454d03073fef",
+			"keccak256": "0x124d6422da7b8b3f0fc67ddc9382a3978869b7a57a827ded0796a3b3ad000a3e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6372eb5f9683b72b29a70e72d0c6a2b957d770076d6e859cf9709836ccf9b411",
-				"dweb:/ipfs/QmTtMJnRaHrsJuwTW8aZi9qHakQwvGd7fJeqe9y8uUzssC"
+				"bzz-raw://1f3939429b9ed40f58afa796118392d2c00c8a4957c9d694ceca37bb80404b9a",
+				"dweb:/ipfs/QmVvVbzF7Qj32GJaXsnXMSBt588JgqL5YtvmPsdFm4Juev"
 			]
 		}
 	},
