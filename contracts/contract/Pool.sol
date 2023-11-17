@@ -135,8 +135,8 @@ contract Pool is Token {
 
         require(amount0 > 0 && amount1 > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
-        Token(token0).transfer(to, amount0);
-        Token(token1).transfer(to, amount1);
+        Token(token0).transferFromTo(address(this), to, amount0);
+        Token(token1).transferFromTo(address(this), to, amount1);
         balance0 = Token(token0).balanceOf(address(this));
         balance1 = Token(token1).balanceOf(address(this));
 

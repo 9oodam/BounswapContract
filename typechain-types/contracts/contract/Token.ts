@@ -37,9 +37,9 @@ export interface TokenInterface extends Interface {
       | "symbol"
       | "tokenURI"
       | "totalSupply"
-      | "transfer(address,uint256)"
-      | "transfer(address,address,uint256)"
+      | "transfer"
       | "transferFrom"
+      | "transferFromTo"
       | "uri"
   ): FunctionFragment;
 
@@ -81,15 +81,15 @@ export interface TokenInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "transfer(address,uint256)",
+    functionFragment: "transfer",
     values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transfer(address,address,uint256)",
+    functionFragment: "transferFrom",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferFrom",
+    functionFragment: "transferFromTo",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "uri", values?: undefined): string;
@@ -108,16 +108,13 @@ export interface TokenInterface extends Interface {
     functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "transfer(address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transfer(address,address,uint256)",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFromTo",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
@@ -244,20 +241,20 @@ export interface Token extends BaseContract {
 
   totalSupply: TypedContractMethod<[], [bigint], "view">;
 
-  "transfer(address,uint256)": TypedContractMethod<
+  transfer: TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-
-  "transfer(address,address,uint256)": TypedContractMethod<
-    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;
 
   transferFrom: TypedContractMethod<
     [from: AddressLike, to: AddressLike, value: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  transferFromTo: TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;
@@ -322,16 +319,9 @@ export interface Token extends BaseContract {
     nameOrSignature: "totalSupply"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "transfer(address,uint256)"
+    nameOrSignature: "transfer"
   ): TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
-    [boolean],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "transfer(address,address,uint256)"
-  ): TypedContractMethod<
-    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;
@@ -339,6 +329,13 @@ export interface Token extends BaseContract {
     nameOrSignature: "transferFrom"
   ): TypedContractMethod<
     [from: AddressLike, to: AddressLike, value: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "transferFromTo"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
     [boolean],
     "nonpayable"
   >;

@@ -80,7 +80,7 @@ contract Swap {
     ) public returns (bool) {
         uint amount = getAmountOut(pairAddress, inputAmount, path); // output
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
-        Token(path[0]).transferFrom(to, pairAddress, inputAmount); // 사용자 -> 페어로 토큰 전송
+        Token(path[0]).transferFromTo(to, pairAddress, inputAmount); // 사용자 -> 페어로 토큰 전송
         _swap(to, pairAddress, amount, path, to);
         return true;
     }
@@ -95,7 +95,7 @@ contract Swap {
         uint amount = getAmountOut(pairAddress, inputAmount, path);
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
         // 권한 위임 확인 필요
-        Token(path[0]).transferFrom(to, pairAddress, inputAmount);
+        Token(path[0]).transferFromTo(to, pairAddress, inputAmount);
         _swap(to, pairAddress, amount, path, address(this)); // 이 컨트랙트로 wbnc 소유주 바꿈
         wbncParams.withdraw(pairAddress, amount); // 이 컨트랙트가 보유한 wbnc 소각
         (bool success, ) = to.call{value: amount}(""); // 사용자에게 bnc 전송
@@ -112,7 +112,7 @@ contract Swap {
         uint amount = getAmountOut(pairAddress, inputAmount, path);
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
         wbncParams.deposit{value: inputAmount}(pairAddress, inputAmount); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
-        assert(wbncParams.transfer(pairAddress, inputAmount)); // 발행된 wbnc 소유주를 페어로
+        assert(wbncParams.transferFromTo(to, pairAddress, inputAmount)); // 발행된 wbnc 소유주를 페어로
         _swap(to, pairAddress, amount, path, to);
     }
 
@@ -126,7 +126,7 @@ contract Swap {
     ) public returns (bool) {
         uint amount = getAmountIn(pairAddress, outputAmount, path);
         require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
-        Token(path[0]).transferFrom(to, pairAddress, amount);
+        Token(path[0]).transferFromTo(to, pairAddress, amount);
         _swap(to, pairAddress, outputAmount, path, to);
         return true;
     }
@@ -140,7 +140,7 @@ contract Swap {
         require(path[1] == wbncAddress, 'INVALID_PATH');
         uint amount = getAmountIn(pairAddress, outputAmount, path);
         require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
-        Token(path[0]).transferFrom(to, pairAddress, amount);
+        Token(path[0]).transferFromTo(to, pairAddress, amount);
         _swap(to, pairAddress, outputAmount, path, address(this));
         wbncParams.withdraw(pairAddress, outputAmount); // 이 컨트랙트가 보유한 wbnc 소각
         (bool success, ) = to.call{value: outputAmount}(""); // 사용자에게 bnc 전송
@@ -155,8 +155,7 @@ contract Swap {
         require(path[0] == wbncAddress, 'INVALID_PATH');
         uint amount = getAmountIn(pairAddress, outputAmount, path);
         require(amount <= msg.value, 'EXCESSIVE_INPUT_AMOUNT'); // 계산된 input 값보다 사용자가 실제 보낸 value 값이 더 많아야 함
-        wbncParams.deposit{value: amount}(pairAddress, amount);
-        assert(wbncParams.transfer(pairAddress, amount)); // 발행된 wbnc를 페어 소유로
+        wbncParams.deposit{value: amount}(pairAddress, amount); // 페어 소유로 wbnc를 발행
         _swap(to, pairAddress, outputAmount, path, to);
         // 실제 받은 value가 계산된 값보다 큰 경우 사용자에게 돌려줌
         if (msg.value > amount) to.call{value: msg.value - amount}("");
@@ -184,8 +183,8 @@ contract Swap {
         address _token0 = pair.token0();
         address _token1 = pair.token1();
         require(to != _token0 && to != _token1, "INVALID_TO");
-        if (amount0Out > 0) Token(_token0).transfer(to, amount0Out); 
-        if (amount1Out > 0) Token(_token1).transfer(to, amount1Out); 
+        if (amount0Out > 0) Token(_token0).transferFromTo(address(this), to, amount0Out); 
+        if (amount1Out > 0) Token(_token1).transferFromTo(address(this), to, amount1Out); 
         // if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); 
         // if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out);
         balance0 = Token(_token0).balanceOf(pairAddress);

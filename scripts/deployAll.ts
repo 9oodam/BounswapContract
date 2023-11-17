@@ -58,7 +58,7 @@ async function main() {
   const stakingAddress = await StakingContract.getAddress();
   
   console.log(
-    stakingAddress
+    dataAddress
   )
 }
 

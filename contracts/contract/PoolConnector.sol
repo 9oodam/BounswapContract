@@ -47,8 +47,8 @@ contract PoolConnector {
     ) public returns (uint amountA, uint amountB, uint liquidity) {
         address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
         (amountA, amountB) = _addLiquidity(pairAddress, tokenA, tokenB, amountADesired, amountBDesired);
-        Token(tokenA).transfer(to, pairAddress, amountA);
-        Token(tokenB).transfer(to, pairAddress, amountB);
+        Token(tokenA).transferFromTo(to, pairAddress, amountA);
+        Token(tokenB).transferFromTo(to, pairAddress, amountB);
         liquidity = Pool(pairAddress).mint(to);
         setValidatorPoolArr(pairAddress, to);
     }
@@ -59,7 +59,7 @@ contract PoolConnector {
     ) public returns (uint amountA, uint amountB) {
         address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
         uint removeAmount = Pool(pairAddress).balanceOf(to) * percentage; // 유저가 가지고 있는 수량에서 몇퍼센트 제거할건지
-        Pool(pairAddress).transfer(to, pairAddress, removeAmount);
+        Pool(pairAddress).transferFromTo(to, pairAddress, removeAmount);
         (uint amount0, uint amount1) = Pool(pairAddress).burn(to, percentage);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
@@ -77,7 +77,7 @@ contract PoolConnector {
             token, wbnc,
             amountTokenDesired, msg.value
         );
-        Token(token).transfer(to, pairAddress, amountToken);
+        Token(token).transferFromTo(to, pairAddress, amountToken);
         WBNC(wbnc).deposit{value: amountBNC}(pairAddress, amountBNC);
         liquidity = Pool(pairAddress).mint(to);
         if (msg.value > amountBNC) to.call{value: msg.value - amountBNC}("");
@@ -94,7 +94,7 @@ contract PoolConnector {
             percentage,
             to
         );
-        Token(token).transfer(pairAddress, to, amountToken);
+        Token(token).transferFromTo(pairAddress, to, amountToken);
         WBNC(wbnc).withdraw(pairAddress, amountBNC);
         to.call{value: amountBNC}("");
     }
@@ -116,8 +116,8 @@ contract PoolConnector {
         address token1 = Pool(pairAddress).token1();
         // 누적된 미청구 수수료가 0 이상 있어야 함
         require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
-        Token(token0).transfer(validator, token0FeeAmount);
-        Token(token1).transfer(validator, token1FeeAmount);
+        Token(token0).transferFromTo(pairAddress, validator, token0FeeAmount);
+        Token(token1).transferFromTo(pairAddress, validator, token1FeeAmount);
         dataParams.setUnclaimedFee(validator, pairAddress, 0, 0);
         return true;
     }

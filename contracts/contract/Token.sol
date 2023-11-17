@@ -48,7 +48,7 @@ contract Token is IERC20 {
         balances[to] += amount;
         return true;
     }
-    function transfer(address from, address to, uint amount) public returns (bool) {
+    function transferFromTo(address from, address to, uint amount) public returns (bool) {
         balances[from] -= amount;
         balances[to] += amount;
         return true;
