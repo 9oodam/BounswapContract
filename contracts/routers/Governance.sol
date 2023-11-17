@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./Token.sol";
+import "../contract/Token.sol";
 
 // 거버넌스 
 contract Governance {

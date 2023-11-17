@@ -29,25 +29,21 @@ export interface PoolInterface extends Interface {
       | "_burn"
       | "_mint"
       | "_update"
-      | "addLiquidity"
-      | "addLiquidityBNC"
       | "allowance"
       | "allowances"
       | "approve"
       | "balanceOf"
       | "balances"
       | "blockTimestampLast"
-      | "claimFee"
+      | "burn"
       | "factory"
       | "getReserves"
-      | "getUserLiquidity"
       | "initialize"
       | "kLast"
+      | "mint"
       | "name"
       | "price0CumulativeLast"
       | "price1CumulativeLast"
-      | "removeLiquidity"
-      | "removeLiquidityBNC"
       | "skim"
       | "symbol"
       | "sync"
@@ -78,22 +74,6 @@ export interface PoolInterface extends Interface {
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "addLiquidity",
-    values: [
-      AddressLike,
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      AddressLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addLiquidityBNC",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish, AddressLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "allowance",
     values: [AddressLike, AddressLike]
   ): string;
@@ -118,8 +98,8 @@ export interface PoolInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "claimFee",
-    values: [AddressLike]
+    functionFragment: "burn",
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
@@ -127,14 +107,11 @@ export interface PoolInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getUserLiquidity",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "initialize",
     values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "kLast", values?: undefined): string;
+  encodeFunctionData(functionFragment: "mint", values: [AddressLike]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "price0CumulativeLast",
@@ -143,21 +120,6 @@ export interface PoolInterface extends Interface {
   encodeFunctionData(
     functionFragment: "price1CumulativeLast",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidity",
-    values: [
-      AddressLike,
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      AddressLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityBNC",
-    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "skim", values: [AddressLike]): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -186,14 +148,6 @@ export interface PoolInterface extends Interface {
   decodeFunctionResult(functionFragment: "_burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "_mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "_update", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidityBNC",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowances", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -203,18 +157,15 @@ export interface PoolInterface extends Interface {
     functionFragment: "blockTimestampLast",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "claimFee", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getReserves",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUserLiquidity",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "kLast", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "price0CumulativeLast",
@@ -222,14 +173,6 @@ export interface PoolInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "price1CumulativeLast",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityBNC",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
@@ -415,44 +358,6 @@ export interface Pool extends BaseContract {
     "nonpayable"
   >;
 
-  addLiquidity: TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountA: bigint;
-        amountB: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "nonpayable"
-  >;
-
-  addLiquidityBNC: TypedContractMethod<
-    [
-      token: AddressLike,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountBNCMin: BigNumberish,
-      to: AddressLike
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountToken: bigint;
-        amountBNC: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "payable"
-  >;
-
   allowance: TypedContractMethod<
     [owner: AddressLike, spender: AddressLike],
     [bigint],
@@ -477,9 +382,9 @@ export interface Pool extends BaseContract {
 
   blockTimestampLast: TypedContractMethod<[], [bigint], "view">;
 
-  claimFee: TypedContractMethod<
-    [validator: AddressLike],
-    [boolean],
+  burn: TypedContractMethod<
+    [to: AddressLike, percentage: BigNumberish],
+    [[bigint, bigint]],
     "nonpayable"
   >;
 
@@ -497,12 +402,6 @@ export interface Pool extends BaseContract {
     "view"
   >;
 
-  getUserLiquidity: TypedContractMethod<
-    [validator: AddressLike],
-    [[bigint, bigint]],
-    "view"
-  >;
-
   initialize: TypedContractMethod<
     [_token0: AddressLike, _token1: AddressLike],
     [void],
@@ -511,36 +410,13 @@ export interface Pool extends BaseContract {
 
   kLast: TypedContractMethod<[], [bigint], "view">;
 
+  mint: TypedContractMethod<[to: AddressLike], [bigint], "nonpayable">;
+
   name: TypedContractMethod<[], [string], "view">;
 
   price0CumulativeLast: TypedContractMethod<[], [bigint], "view">;
 
   price1CumulativeLast: TypedContractMethod<[], [bigint], "view">;
-
-  removeLiquidity: TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      percentage: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike
-    ],
-    [[bigint, bigint] & { amountA: bigint; amountB: bigint }],
-    "nonpayable"
-  >;
-
-  removeLiquidityBNC: TypedContractMethod<
-    [
-      token: AddressLike,
-      percentage: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountBNCMin: BigNumberish,
-      to: AddressLike
-    ],
-    [[bigint, bigint] & { amountToken: bigint; amountBNC: bigint }],
-    "nonpayable"
-  >;
 
   skim: TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
 
@@ -607,46 +483,6 @@ export interface Pool extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "addLiquidity"
-  ): TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountA: bigint;
-        amountB: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "addLiquidityBNC"
-  ): TypedContractMethod<
-    [
-      token: AddressLike,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountBNCMin: BigNumberish,
-      to: AddressLike
-    ],
-    [
-      [bigint, bigint, bigint] & {
-        amountToken: bigint;
-        amountBNC: bigint;
-        liquidity: bigint;
-      }
-    ],
-    "payable"
-  >;
-  getFunction(
     nameOrSignature: "allowance"
   ): TypedContractMethod<
     [owner: AddressLike, spender: AddressLike],
@@ -677,8 +513,12 @@ export interface Pool extends BaseContract {
     nameOrSignature: "blockTimestampLast"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "claimFee"
-  ): TypedContractMethod<[validator: AddressLike], [boolean], "nonpayable">;
+    nameOrSignature: "burn"
+  ): TypedContractMethod<
+    [to: AddressLike, percentage: BigNumberish],
+    [[bigint, bigint]],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "factory"
   ): TypedContractMethod<[], [string], "view">;
@@ -696,9 +536,6 @@ export interface Pool extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getUserLiquidity"
-  ): TypedContractMethod<[validator: AddressLike], [[bigint, bigint]], "view">;
-  getFunction(
     nameOrSignature: "initialize"
   ): TypedContractMethod<
     [_token0: AddressLike, _token1: AddressLike],
@@ -709,6 +546,9 @@ export interface Pool extends BaseContract {
     nameOrSignature: "kLast"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "mint"
+  ): TypedContractMethod<[to: AddressLike], [bigint], "nonpayable">;
+  getFunction(
     nameOrSignature: "name"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -717,33 +557,6 @@ export interface Pool extends BaseContract {
   getFunction(
     nameOrSignature: "price1CumulativeLast"
   ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "removeLiquidity"
-  ): TypedContractMethod<
-    [
-      tokenA: AddressLike,
-      tokenB: AddressLike,
-      percentage: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: AddressLike
-    ],
-    [[bigint, bigint] & { amountA: bigint; amountB: bigint }],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "removeLiquidityBNC"
-  ): TypedContractMethod<
-    [
-      token: AddressLike,
-      percentage: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountBNCMin: BigNumberish,
-      to: AddressLike
-    ],
-    [[bigint, bigint] & { amountToken: bigint; amountBNC: bigint }],
-    "nonpayable"
-  >;
   getFunction(
     nameOrSignature: "skim"
   ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;

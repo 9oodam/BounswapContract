@@ -2,14 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Factory } from "./Factory";
-export type { GovToken } from "./GovToken";
-export type { Governance } from "./Governance";
 export type { InitialDeploy } from "./InitialDeploy";
-export type { InitialProxy } from "./InitialProxy";
 export type { Pool } from "./Pool";
-export type { Staking } from "./Staking";
+export type { PoolConnector } from "./PoolConnector";
 export type { Swap } from "./Swap";
-export type { Test } from "./Test";
 export type { Token } from "./Token";
 export type { WBNC } from "./WBNC";
-export type { Wrapping } from "./Wrapping";

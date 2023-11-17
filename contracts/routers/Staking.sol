@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+import "../routers/Data.sol";
+import "../contract/WBNC.sol";
 import "../interfaces/IERC20.sol";
-import "../utils/Data.sol";
-import "./WBNC.sol";
 
 contract Staking is Ownable, ReentrancyGuard { 
     

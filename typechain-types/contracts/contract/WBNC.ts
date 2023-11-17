@@ -79,7 +79,7 @@ export interface WBNCInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -103,7 +103,7 @@ export interface WBNCInterface extends Interface {
   encodeFunctionData(functionFragment: "uri", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish]
+    values: [AddressLike, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "_burn", data: BytesLike): Result;
@@ -276,7 +276,11 @@ export interface WBNC extends BaseContract {
 
   balances: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
-  deposit: TypedContractMethod<[value: BigNumberish], [void], "payable">;
+  deposit: TypedContractMethod<
+    [owner: AddressLike, value: BigNumberish],
+    [void],
+    "payable"
+  >;
 
   name: TypedContractMethod<[], [string], "view">;
 
@@ -306,7 +310,11 @@ export interface WBNC extends BaseContract {
 
   uri: TypedContractMethod<[], [string], "view">;
 
-  withdraw: TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  withdraw: TypedContractMethod<
+    [owner: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -355,7 +363,11 @@ export interface WBNC extends BaseContract {
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "deposit"
-  ): TypedContractMethod<[value: BigNumberish], [void], "payable">;
+  ): TypedContractMethod<
+    [owner: AddressLike, value: BigNumberish],
+    [void],
+    "payable"
+  >;
   getFunction(
     nameOrSignature: "name"
   ): TypedContractMethod<[], [string], "view">;
@@ -394,7 +406,11 @@ export interface WBNC extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "withdraw"
-  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  ): TypedContractMethod<
+    [owner: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getEvent(
     key: "Approval"

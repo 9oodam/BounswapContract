@@ -5,6 +5,5 @@ import type * as contract from "./contract";
 export type { contract };
 import type * as interfaces from "./interfaces";
 export type { interfaces };
-import type * as utils from "./utils";
-export type { utils };
-export type { Lock } from "./Lock";
+import type * as routers from "./routers";
+export type { routers };

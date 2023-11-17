@@ -81,8 +81,12 @@ contract Data {
         validatorPoolArr[to].pop();
     }
 
-    function getValidatorArr(address pair) public view returns (address[] memory) {
-        return validatorArr[pair];
+    function getValidatorArr(address pairAddress) public view returns (address[] memory) {
+        return validatorArr[pairAddress];
+    }
+
+    function validatorArrLength(address pairAdress) public view returns (uint256) {
+        return validatorArr[pairAdress].length;
     }
 
     function addValidatorArr(address pair, address validator) public {
@@ -133,17 +137,12 @@ contract Data {
     }
 
     // my pool detail page에서 보여줄 정보
-    function getUserPoolDetail(address pairAddress) public view returns (MyPoolDetail memory) {
-        (uint256 amount0, uint256 amount1) = Pool(pairAddress).getUserLiquidity(msg.sender); 
-        return MyPoolDetail(getEachPool(pairAddress), amount0, amount1);
-    }
+    // function getUserPoolDetail(address pairAddress) public view returns (MyPoolDetail memory) {
+    //     (uint256 amount0, uint256 amount1) = Pool(pairAddress).getUserLiquidity(msg.sender); 
+    //     return MyPoolDetail(getEachPool(pairAddress), amount0, amount1);
+    // }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
-    function getUnclaimedFee(address pairAddress) public view returns (UnclaimedFeeData memory) {
-        return userUnclaimedFee[msg.sender][pairAddress];
-    }
-
-    // 확인 필요 다른 컨트랙트에서 불러올때 참고
     function getUnclaimedFee(address validator, address pairAddress) public view returns (uint256, uint256) {
         return (userUnclaimedFee[validator][pairAddress].token0FeeAmount, userUnclaimedFee[validator][pairAddress].token1FeeAmount);
     }

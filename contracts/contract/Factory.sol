@@ -3,13 +3,13 @@ pragma solidity ^0.8.19;
 
 import "hardhat/console.sol";
 
+import "../routers/Data.sol";
 import "./Token.sol";
 import "./Pool.sol";
-import "../utils/Data.sol";
 
 contract Factory {
     Data dataParams;
-    // address private wbncAddress;
+    address private dataAddress;
 
     address public feeTo;
     address private feeToSetter;
@@ -21,6 +21,7 @@ contract Factory {
     constructor(address _dataAddress, address _feeToSetter) public {
         feeToSetter = _feeToSetter;
         dataParams = Data(_dataAddress);
+        dataAddress = _dataAddress;
     }
 
     function getPairAddress(address tokenA, address tokenB) public view returns (address) {
@@ -42,16 +43,20 @@ contract Factory {
         // }
         
         // 새로 생긴 pair 주소로 LP token CA 생성
-        string memory nameA = Token(tokenA).name();
-        string memory nameB = Token(tokenB).name();
         string memory symbolA = Token(tokenA).symbol();
         string memory symbolB = Token(tokenB).symbol();
-        string memory combinedName = string(abi.encodePacked(nameA, "-", nameB));
-        string memory combinedSymbol = string(abi.encodePacked(symbolA, symbolB));
-        
-        address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
-        address wbncAddress = tokenAddressArr[0];
-        Pool pairInstance = new Pool(wbncAddress, combinedName, combinedSymbol);
+        bytes memory strbytes = bytes(abi.encodePacked(symbolA, symbolB));
+        bytes memory sliced = new bytes(3);
+        uint charIndex = 0;
+        for (uint i = 0; i < strbytes.length; i+=2) {
+            if(charIndex < 3) {
+                sliced[charIndex] = strbytes[i];
+                charIndex++;
+            }
+        }
+        string memory combinedSymbol = string(sliced);   
+
+        Pool pairInstance = new Pool(dataAddress, combinedSymbol, combinedSymbol);
         address pairAddress = address(pairInstance);
         Pool(pairAddress).initialize(token0, token1);
 

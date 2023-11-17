@@ -3,16 +3,14 @@ pragma solidity ^0.8.19;
 
 import "hardhat/console.sol";
 
-import "./Wrapping.sol";
-import "./Factory.sol";
-import "./Pool.sol";
-import "./Swap.sol";
-import "./Token.sol";
+import "../contract/Factory.sol";
+import "../contract/PoolConnector.sol";
+import "../contract/Swap.sol";
+import "../contract/Token.sol";
 
 contract InitialProxy {
 
     // 인스턴스 담을 변수
-    // Wrapping wrappingParams;
     Factory factoryParams;
     Swap swapParams;
 
@@ -24,12 +22,9 @@ contract InitialProxy {
 
     uint256 numForCheck = 10;
 
-    // constructor(address _wrappingAddress, address _factoryAddress, address _swapAddress, address _wbncAddress) {
     constructor(address _factoryAddress, address _swapAddress, address _wbncAddress) {
-        // wrappingParams = Wrapping(_wrappingAddress);
         factoryParams = Factory(_factoryAddress);
         swapParams = Swap(_swapAddress);
-
         wbncAddress = _wbncAddress;
     }
 
