@@ -31,12 +31,6 @@ contract Data {
         uint256 tvl;
     }
 
-    event EventTest(
-        uint256 num,
-        string str
-    );
-
-
     // blockTimeStamp로 blockNumber 찾기
     mapping (uint32 blockTimeStamp => uint32 blockNumber) public blockNumbers;
 
@@ -49,7 +43,6 @@ contract Data {
     }
 
     constructor() {
-        emit EventTest(1117, 'hi');
     }
 
     // 확인 필요

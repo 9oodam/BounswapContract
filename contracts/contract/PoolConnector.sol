@@ -16,6 +16,18 @@ contract PoolConnector {
         dataParams = Data(_dataAddress);
     }
 
+    // 유동성 공급시 1:1 수량 계산
+    function getPairAmount(
+        address tokenA, address tokenB,
+        uint tokenAamount
+    ) external view returns (uint tokenBamount) {
+        address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
+        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (uint112 reserve0, uint112 reserve1, ) = Pool(pairAddress).getReserves();
+        (uint reserveA, uint reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+        tokenBamount = reserveB * tokenAamount / reserveA;
+    }
+
     function _addLiquidity(
         address pairAddress,
         address tokenA, address tokenB,
@@ -58,8 +70,9 @@ contract PoolConnector {
         address to
     ) public returns (uint amountA, uint amountB) {
         address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
-        uint removeAmount = Pool(pairAddress).balanceOf(to) * percentage; // 유저가 가지고 있는 수량에서 몇퍼센트 제거할건지
-        Pool(pairAddress).transferFromTo(to, pairAddress, removeAmount);
+        uint removeAmount = Pool(pairAddress).balanceOf(to) * percentage / 100; // 유저가 가지고 있는 수량에서 몇퍼센트 제거할건지
+        console.log('removeAmount : ', removeAmount);
+        Pool(pairAddress).transferFromTo(to, pairAddress, removeAmount); // 계산된 Lp token 수량만큼 페어에 전송
         (uint amount0, uint amount1) = Pool(pairAddress).burn(to, percentage);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);

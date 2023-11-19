@@ -30,8 +30,8 @@ export interface SwapInterface extends Interface {
       | "exactBNCForTokens"
       | "exactTokensForBNC"
       | "exactTokensForTokens"
-      | "getAmountIn"
-      | "getAmountOut"
+      | "getMaxToken"
+      | "getMinToken"
       | "tokensForExactBNC"
       | "tokensForExactTokens"
   ): FunctionFragment;
@@ -73,11 +73,11 @@ export interface SwapInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAmountIn",
+    functionFragment: "getMaxToken",
     values: [AddressLike, BigNumberish, [AddressLike, AddressLike]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAmountOut",
+    functionFragment: "getMinToken",
     values: [AddressLike, BigNumberish, [AddressLike, AddressLike]]
   ): string;
   encodeFunctionData(
@@ -118,11 +118,11 @@ export interface SwapInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAmountIn",
+    functionFragment: "getMaxToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAmountOut",
+    functionFragment: "getMinToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -256,7 +256,7 @@ export interface Swap extends BaseContract {
     "nonpayable"
   >;
 
-  getAmountIn: TypedContractMethod<
+  getMaxToken: TypedContractMethod<
     [
       pairAddress: AddressLike,
       outputAmount: BigNumberish,
@@ -266,7 +266,7 @@ export interface Swap extends BaseContract {
     "view"
   >;
 
-  getAmountOut: TypedContractMethod<
+  getMinToken: TypedContractMethod<
     [
       pairAddress: AddressLike,
       inputAmount: BigNumberish,
@@ -356,7 +356,7 @@ export interface Swap extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getAmountIn"
+    nameOrSignature: "getMaxToken"
   ): TypedContractMethod<
     [
       pairAddress: AddressLike,
@@ -367,7 +367,7 @@ export interface Swap extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getAmountOut"
+    nameOrSignature: "getMinToken"
   ): TypedContractMethod<
     [
       pairAddress: AddressLike,

@@ -37,12 +37,23 @@ contract Swap {
         uint amount1Out
     );
 
+    // minToken 계산
+    function getMinToken(address pairAddress, uint inputAmount, address[2] memory path) external view returns (uint minToken) {
+        uint amount = getAmountOut(pairAddress, inputAmount, path); // output
+        minToken = amount * 995 / 1000;
+    }
+    // maxToken 계산
+    function getMaxToken(address pairAddress, uint outputAmount, address[2] memory path) external view returns (uint maxToken) {
+        uint amount = getAmountIn(pairAddress, outputAmount, path);
+        maxToken = amount / 995 * 1000;
+    }
+
     // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
     function getAmountOut(
         address pairAddress,
         uint inputAmount, // A
         address[2] memory path
-    ) public view returns (uint amountOut) { // B 
+    ) internal view returns (uint amountOut) { // B 
         // CPMM => AY / (A+X) = B 
         require(inputAmount > 0, "INSUFFICIENT_INPUT_AMOUNT");
         Pool pool = Pool(pairAddress);
@@ -52,13 +63,14 @@ contract Swap {
         uint numerator = amountInWithFee * reserveOut;
         uint denominator = (reserveIn * 1000) + amountInWithFee; // 수수료 고려안한 원래 금액 + 수수료
         amountOut = numerator / denominator;
+        console.log('getAmountOut : ', reserveIn, reserveOut, amountOut);
     }
     // 사용자가 ouput에 숫자 넣었을 때 in에 나올 예상량 계산
     function getAmountIn(
         address pairAddress,
         uint outputAmount, // B
         address[2] memory path
-    ) public view returns (uint amountIn) { // A
+    ) internal view returns (uint amountIn) { // A
         // CPMM => XB / (Y - B) = A
         require(outputAmount > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
         Pool pool = Pool(pairAddress);
@@ -183,8 +195,8 @@ contract Swap {
         address _token0 = pair.token0();
         address _token1 = pair.token1();
         require(to != _token0 && to != _token1, "INVALID_TO");
-        if (amount0Out > 0) Token(_token0).transferFromTo(address(this), to, amount0Out); 
-        if (amount1Out > 0) Token(_token1).transferFromTo(address(this), to, amount1Out); 
+        if (amount0Out > 0) Token(_token0).transferFromTo(pairAddress, to, amount0Out); 
+        if (amount1Out > 0) Token(_token1).transferFromTo(pairAddress, to, amount1Out); 
         // if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); 
         // if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out);
         balance0 = Token(_token0).balanceOf(pairAddress);
