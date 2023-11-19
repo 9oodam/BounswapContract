@@ -9,8 +9,7 @@ contract Governance {
     uint private proposalCount;
 
     // 투표 기간 7일
-    // uint private votingPeriod = 7 days; 
-    uint private votingPeriod = 2 minutes; 
+    uint private votingPeriod = 7 days; 
 
     // 제안
     struct Proposal {
@@ -54,20 +53,37 @@ contract Governance {
         unlocked = 1;
     }   
 
-    // 제안서 제출했을때
+    /// @notice 의제 제출했을 때 발생하는 이벤트
+    /// @param id 제안서 id
+    /// @param proposer 제출자
+    /// @param quorumVotes 최소 찬성 투표 수 
+    /// @param startTime 제출 시각
+    /// @param endTime 투표 마감 시간
+    /// @param state 제안 상태 (0 : 투표 중, 1 : 투표 통과 X, 2 : 투표 통과 O)
+    /// @param contents 제안 내용. contents[0] = "title", contents[1] = "description"
     event ProposalCreated(uint id, address proposer, uint quorumVotes, uint startTime, uint endTime, ProposalState state, bytes[] contents);
 
-    // 투표했을때
+    /// @notice 투표했을 때 발생하는 이벤트
+    /// @param voter 투표한 사용자 address 
+    /// @param proposalId 제안서 id
+    /// @param support 해당 의제 지지 여부
+    /// @param votes 투표에 참여한 거버넌스 토큰의 양
     event VoteCast(address voter, uint proposalId, bool support, uint votes);
 
-    // 투표 결과 나왔을때
+    /// @notice 제안서 상태 변경되었을 때 (투표 결과 나왔을 때) 발생하는 이벤트
+    /// @param id 제안서 id
+    /// @param state 제안 상태 (0 : 투표 중, 1 : 투표 통과 X, 2 : 투표 통과 O)
     event ProposalStateChange(uint id, ProposalState state);
 
+    /// @notice governance 컨트랙트 생성자 함수
+    /// @param _govToken 거버넌스 토큰 CA address
     constructor(address _govToken) {
         govToken = _govToken;
     }
     
-    // 의제 제출
+    /// @notice 의제 제출하는 메서드
+    /// @param _proposer 제출자 address
+    /// @param contents 제안서 내용. contents[0] = "제안서 제목 (title)", contents[1] = "제안서 설명 (description)"
     function propose(address _proposer, bytes[] memory contents) public {
         // 의제 제출에 필요한 거버넌스 토큰 있는지 확인
         require(Token(govToken).balanceOf(_proposer) >= 1, "govToken");
@@ -87,6 +103,8 @@ contract Governance {
         emit ProposalCreated(proposal.id, _proposer, proposal.quorumVotes, proposal.startTime, proposal.endTime, proposal.state, contents);
     }
 
+    /// @notice 의제(제안서) 목록 반환하는 메서드
+    /// @return Proposal 배열 Proposal : (id, proposer (제출자), title, description, quorumVotes (최소 찬성 투표수), forVotes (찬성 투표 수), againstVotes (반대 투표 수), startTime, endTime, state (0 : 투표중, 1 : 투표 통과 X, 2 : 투표 통과 O))
     function getProposals() external view returns (Proposal[] memory) {
         Proposal[] memory proposalArr = new Proposal[](proposalCount);
         for (uint i = 1; i <= proposalCount; i++) {
@@ -95,11 +113,18 @@ contract Governance {
         return proposalArr;
     }
 
+    /// @notice 해당 제안서 투표 내역 반환하는 메서드
+    /// @param _id 제안서 id
+    /// @param voter 투표한 address
+    /// @return 투표 내역 (hasVoted : 투표 여부, support : 찬반 여부, votes : 투표에 참여한 거버넌스 토큰의 양)
     function getReceipt(uint _id, address voter) external view returns (Receipt memory) {
         return receipts[_id][voter];
     }
     
-    // 투표하기
+    /// @notice 투표하는 메서드
+    /// @param _id 제안서 id
+    /// @param voter 투표할 사용자 address
+    /// @param _support 해당 의제 지지 여부
     function vote(uint _id, address voter, bool _support) external lock returns (bool) {
         uint256 voterBalance = Token(govToken).balanceOf(voter);
         require(voterBalance > 0, "govToken");
@@ -130,7 +155,8 @@ contract Governance {
         return true;
     }
 
-    // 제안서 상태 변경
+    /// @notice 제안서 상태 변경하는 메서드
+    /// @param _id 변경할 제안서 id
     function state(uint _id) internal returns (bool) {
         Proposal storage proposal = proposals[_id];
         if (proposal.state != ProposalState.Active || block.timestamp <= proposal.endTime) {
