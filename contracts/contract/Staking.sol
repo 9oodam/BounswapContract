@@ -68,10 +68,10 @@ contract Staking is Ownable, ReentrancyGuard {
     event SetDev0Address(address indexed dev0Addr); /// @dev 변경된 개발자 주소 기록
     event UpdateBNCPerBlock(uint256 BNCPerBlock); /// @dev 변경된 블록당 퍼센트 기록
     event SetPercent(uint256 stakingPercent, uint256 dev0Percent); /// @dev 변경된 스테이킹과 개발자에게 주는 리워드 퍼센트 기록
-    event Deposit(address indexed user, uint256 indexed pid, uint256 amount, uint256 stakingStartTime); /// @dev 예치된 유저, 풀, LP수량, 시간
+    event Deposit(address indexed user, uint256 indexed pid, uint256 amount, uint256 stakingStartTime, uint256 lpTokenBalances); /// @dev 예치된 유저, 풀, LP수량, 시간
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount); /// @dev 일반출금시 유저, 풀, LP수량 기록
     event MaturedWithdrawWithdraw(address user, uint256 pid, uint256 LP, uint256 BNC); /// @dev 만기출금시 유저, 푸르, LP수량, BNC수량 기록
-    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount); /// @dev 스테이킹 중도 포기시, 유저, 풀, 수량 기록
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount, uint256 lpTokenBalances); /// @dev 스테이킹 중도 포기시, 유저, 풀, 수량 기록
     event ClaimBNC(address indexed user, uint256 indexed pid, uint256 amount); /// @dev 쌓인 보상 출금 기록
     event DistributeRewards (uint256 _pid, uint256 pendingReward, uint256 totalStaked); /// @dev  탈주닌자 리워드 처리 기록
     event AddStakingPool (uint256 _allocPoint, address _lpToken, uint256 stakingPoolStartTime, uint256 stakingEndTime); /// @dev 스테이킹 풀 생성 시 할당 포인트, 토큰 주소, 시작시간, 끝나는시간 기록
@@ -301,7 +301,8 @@ contract Staking is Ownable, ReentrancyGuard {
         if(user.stakingStartTime == 0) {
             user.stakingStartTime = block.timestamp;
         }
-        emit Deposit(msg.sender, _pid, _amount, user.stakingStartTime);
+        
+        emit Deposit(msg.sender, _pid, _amount, user.stakingStartTime, pool.lpToken.balanceOf(address(this)));
 
     }
     /// @notice 일반 출금
@@ -389,7 +390,8 @@ contract Staking is Ownable, ReentrancyGuard {
         }
 
         pool.lpToken.transfer(msg.sender, userAmount);
-        emit EmergencyWithdraw(msg.sender, _pid, userAmount);
+        
+        emit EmergencyWithdraw(msg.sender, _pid, userAmount, pool.lpToken.balanceOf(address(this)));
 
         user.amount = 0;
         user.pendingReward = 0;
@@ -483,11 +485,20 @@ contract Staking is Ownable, ReentrancyGuard {
     }
     /// @notice 쌓인 리워드 갯수, 블록당 받는 리워드 갯수, 탈주자가 남기고간 리워드 중 내 몫 반환
     function myAllReward (uint256 _pid, address _user) public view returns (uint256, uint256, uint256) {
-        uint256 pendingBNCValue = pendingBNC(_pid, _user);
-        uint256 userBlockRewardPerBlockValue = userBlockRewardPerBlock(_pid, _user);
-        uint256 estimatedUserRewardFromNinjsVlaue = estimatedUserRewardFromNinjs(_pid, _user);
-
-         return (pendingBNCValue, userBlockRewardPerBlockValue, estimatedUserRewardFromNinjsVlaue);
-         
+        bool isStaking = false;
+        for (uint256 i; i < stakingUsers[_pid].length; i++) {
+            if(stakingUsers[_pid][i] == _user) {
+                isStaking = true;
+                break;
+            }
+        }
+        if (isStaking) {
+            uint256 pendingBNCValue = pendingBNC(_pid, _user);
+            uint256 userBlockRewardPerBlockValue = userBlockRewardPerBlock(_pid, _user);
+            uint256 estimatedUserRewardFromNinjsVlaue = estimatedUserRewardFromNinjs(_pid, _user);
+            return (pendingBNCValue, userBlockRewardPerBlockValue, estimatedUserRewardFromNinjsVlaue);
+        } else {
+            return (0, 0, 0);
+        }
     }
 }
