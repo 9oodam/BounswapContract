@@ -44,18 +44,19 @@ async function main() {
   const startBlock = 123456; 
   const initialOwner = "0x0000000000000000000000000000000000000003"; // Owner
   
-  const StakingContract = await ethers.deployContract("Staking", [
-    BNCTokenAddress,
-    dataAddress,
-    dev0Addr,
-    dev0Percent,
-    stakingPercent,
-    BNCPerBlock,
-    startBlock,
-    initialOwner
-  ]);
-  await StakingContract.waitForDeployment();
-  const stakingAddress = await StakingContract.getAddress();
+    const StakingContract = await ethers.deployContract("Staking", [
+      BNCTokenAddress,
+      // dataAddress,
+      dev0Addr,
+      dev0Percent,
+      stakingPercent,
+      BNCPerBlock,
+      startBlock,
+      initialOwner
+    ]);
+    await StakingContract.waitForDeployment();
+    const stakingAddress = StakingContract.getAddress();
+    // ------------------
   
   console.log(
     dataAddress
