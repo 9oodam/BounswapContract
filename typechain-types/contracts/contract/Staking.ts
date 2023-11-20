@@ -23,24 +23,6 @@ import type {
   TypedContractMethod,
 } from "../../common";
 
-export declare namespace Staking {
-  export type NinjaInfoStruct = {
-    totalLPToken: BigNumberish;
-    totalNinjaReward: BigNumberish;
-    stakingLeftTime: BigNumberish;
-  };
-
-  export type NinjaInfoStructOutput = [
-    totalLPToken: bigint,
-    totalNinjaReward: bigint,
-    stakingLeftTime: bigint
-  ] & {
-    totalLPToken: bigint;
-    totalNinjaReward: bigint;
-    stakingLeftTime: bigint;
-  };
-}
-
 export interface StakingInterface extends Interface {
   getFunction(
     nameOrSignature:
@@ -49,7 +31,6 @@ export interface StakingInterface extends Interface {
       | "BNCPerBlock"
       | "BONUS_MULTIPLIER"
       | "addStakingPool"
-      | "calculateRewardPer100Tokens"
       | "claimBNC"
       | "data"
       | "deposit"
@@ -61,9 +42,11 @@ export interface StakingInterface extends Interface {
       | "getAllTotalNinjaReward"
       | "getLastNinjaRewardInfo"
       | "getMultiplier"
-      | "getNinjaInfo"
+      | "getStakingUsers"
       | "lastBlockDevWithdraw"
       | "massUpdatePools"
+      | "maturedWithdraw"
+      | "myAllReward"
       | "ninjaInfo"
       | "owner"
       | "pendingBNC"
@@ -83,6 +66,7 @@ export interface StakingInterface extends Interface {
       | "totalAllocPoint"
       | "transferOwnership"
       | "updateBNCPerBlock"
+      | "updatePendingBNC"
       | "updatePool"
       | "userBlockRewardPerBlock"
       | "userInfo"
@@ -97,6 +81,8 @@ export interface StakingInterface extends Interface {
       | "Deposit"
       | "DistributeRewards"
       | "EmergencyWithdraw"
+      | "MaturedWithdrawWithdraw"
+      | "MyAllReward"
       | "NinjaLiftInfo"
       | "OwnershipTransferred"
       | "SetDev0Address"
@@ -120,11 +106,7 @@ export interface StakingInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "addStakingPool",
-    values: [BigNumberish, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calculateRewardPer100Tokens",
-    values: [BigNumberish]
+    values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "claimBNC",
@@ -165,8 +147,8 @@ export interface StakingInterface extends Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getNinjaInfo",
-    values: [BigNumberish, AddressLike]
+    functionFragment: "getStakingUsers",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "lastBlockDevWithdraw",
@@ -175,6 +157,14 @@ export interface StakingInterface extends Interface {
   encodeFunctionData(
     functionFragment: "massUpdatePools",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maturedWithdraw",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "myAllReward",
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "ninjaInfo",
@@ -250,6 +240,10 @@ export interface StakingInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "updatePendingBNC",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "updatePool",
     values: [BigNumberish]
   ): string;
@@ -287,10 +281,6 @@ export interface StakingInterface extends Interface {
     functionFragment: "addStakingPool",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "calculateRewardPer100Tokens",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "claimBNC", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "data", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -324,7 +314,7 @@ export interface StakingInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getNinjaInfo",
+    functionFragment: "getStakingUsers",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -333,6 +323,14 @@ export interface StakingInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "massUpdatePools",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maturedWithdraw",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "myAllReward",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ninjaInfo", data: BytesLike): Result;
@@ -384,6 +382,10 @@ export interface StakingInterface extends Interface {
     functionFragment: "updateBNCPerBlock",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "updatePendingBNC",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "updatePool", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "userBlockRewardPerBlock",
@@ -401,17 +403,20 @@ export namespace AddStakingPoolEvent {
   export type InputTuple = [
     _allocPoint: BigNumberish,
     _lpToken: AddressLike,
-    stakingPoolStartTime: BigNumberish
+    stakingPoolStartTime: BigNumberish,
+    stakingEndTime: BigNumberish
   ];
   export type OutputTuple = [
     _allocPoint: bigint,
     _lpToken: string,
-    stakingPoolStartTime: bigint
+    stakingPoolStartTime: bigint,
+    stakingEndTime: bigint
   ];
   export interface OutputObject {
     _allocPoint: bigint;
     _lpToken: string;
     stakingPoolStartTime: bigint;
+    stakingEndTime: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -502,24 +507,74 @@ export namespace EmergencyWithdrawEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace MaturedWithdrawWithdrawEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    pid: BigNumberish,
+    LP: BigNumberish,
+    BNC: BigNumberish
+  ];
+  export type OutputTuple = [
+    user: string,
+    pid: bigint,
+    LP: bigint,
+    BNC: bigint
+  ];
+  export interface OutputObject {
+    user: string;
+    pid: bigint;
+    LP: bigint;
+    BNC: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace MyAllRewardEvent {
+  export type InputTuple = [
+    _pendingBNC: BigNumberish,
+    _userBlockRewardPerBlock: BigNumberish,
+    _estimatedUserRewardFromNinjs: BigNumberish
+  ];
+  export type OutputTuple = [
+    _pendingBNC: bigint,
+    _userBlockRewardPerBlock: bigint,
+    _estimatedUserRewardFromNinjs: bigint
+  ];
+  export interface OutputObject {
+    _pendingBNC: bigint;
+    _userBlockRewardPerBlock: bigint;
+    _estimatedUserRewardFromNinjs: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace NinjaLiftInfoEvent {
   export type InputTuple = [
     _Ninja: AddressLike,
     _totalLPToken: BigNumberish,
     _totalNinjaReward: BigNumberish,
-    _stakingLeftTime: BigNumberish
+    _stakingLeftTime: BigNumberish,
+    _ninjaRewardRate: BigNumberish
   ];
   export type OutputTuple = [
     _Ninja: string,
     _totalLPToken: bigint,
     _totalNinjaReward: bigint,
-    _stakingLeftTime: bigint
+    _stakingLeftTime: bigint,
+    _ninjaRewardRate: bigint
   ];
   export interface OutputObject {
     _Ninja: string;
     _totalLPToken: bigint;
     _totalNinjaReward: bigint;
     _stakingLeftTime: bigint;
+    _ninjaRewardRate: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -650,15 +705,9 @@ export interface Staking extends BaseContract {
   BONUS_MULTIPLIER: TypedContractMethod<[], [bigint], "view">;
 
   addStakingPool: TypedContractMethod<
-    [_allocPoint: BigNumberish, _lpToken: AddressLike],
+    [_allocPoint: BigNumberish, _lpToken: AddressLike, _endDays: BigNumberish],
     [void],
     "nonpayable"
-  >;
-
-  calculateRewardPer100Tokens: TypedContractMethod<
-    [_pid: BigNumberish],
-    [bigint],
-    "view"
   >;
 
   claimBNC: TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
@@ -707,15 +756,27 @@ export interface Staking extends BaseContract {
     "view"
   >;
 
-  getNinjaInfo: TypedContractMethod<
-    [_pid: BigNumberish, _user: AddressLike],
-    [Staking.NinjaInfoStructOutput],
+  getStakingUsers: TypedContractMethod<
+    [_pid: BigNumberish],
+    [string[]],
     "view"
   >;
 
   lastBlockDevWithdraw: TypedContractMethod<[], [bigint], "view">;
 
   massUpdatePools: TypedContractMethod<[], [void], "nonpayable">;
+
+  maturedWithdraw: TypedContractMethod<
+    [_pid: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  myAllReward: TypedContractMethod<
+    [_pid: BigNumberish, _user: AddressLike],
+    [[bigint, bigint, bigint]],
+    "view"
+  >;
 
   ninjaInfo: TypedContractMethod<
     [arg0: BigNumberish, arg1: AddressLike],
@@ -749,7 +810,7 @@ export interface Staking extends BaseContract {
         allocPoint: bigint;
         lastRewardBlock: bigint;
         accBNCPerShare: bigint;
-        stakingEndTime: bigint;
+        stakingPoolEndTime: bigint;
         stakingPoolStartTime: bigint;
       }
     ],
@@ -814,6 +875,12 @@ export interface Staking extends BaseContract {
     "nonpayable"
   >;
 
+  updatePendingBNC: TypedContractMethod<
+    [_pid: BigNumberish, _user: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+
   updatePool: TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
 
   userBlockRewardPerBlock: TypedContractMethod<
@@ -862,13 +929,10 @@ export interface Staking extends BaseContract {
   getFunction(
     nameOrSignature: "addStakingPool"
   ): TypedContractMethod<
-    [_allocPoint: BigNumberish, _lpToken: AddressLike],
+    [_allocPoint: BigNumberish, _lpToken: AddressLike, _endDays: BigNumberish],
     [void],
     "nonpayable"
   >;
-  getFunction(
-    nameOrSignature: "calculateRewardPer100Tokens"
-  ): TypedContractMethod<[_pid: BigNumberish], [bigint], "view">;
   getFunction(
     nameOrSignature: "claimBNC"
   ): TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
@@ -923,18 +987,24 @@ export interface Staking extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getNinjaInfo"
-  ): TypedContractMethod<
-    [_pid: BigNumberish, _user: AddressLike],
-    [Staking.NinjaInfoStructOutput],
-    "view"
-  >;
+    nameOrSignature: "getStakingUsers"
+  ): TypedContractMethod<[_pid: BigNumberish], [string[]], "view">;
   getFunction(
     nameOrSignature: "lastBlockDevWithdraw"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "massUpdatePools"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "maturedWithdraw"
+  ): TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "myAllReward"
+  ): TypedContractMethod<
+    [_pid: BigNumberish, _user: AddressLike],
+    [[bigint, bigint, bigint]],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "ninjaInfo"
   ): TypedContractMethod<
@@ -974,7 +1044,7 @@ export interface Staking extends BaseContract {
         allocPoint: bigint;
         lastRewardBlock: bigint;
         accBNCPerShare: bigint;
-        stakingEndTime: bigint;
+        stakingPoolEndTime: bigint;
         stakingPoolStartTime: bigint;
       }
     ],
@@ -1035,6 +1105,13 @@ export interface Staking extends BaseContract {
   getFunction(
     nameOrSignature: "updateBNCPerBlock"
   ): TypedContractMethod<[newAmount: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "updatePendingBNC"
+  ): TypedContractMethod<
+    [_pid: BigNumberish, _user: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "updatePool"
   ): TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
@@ -1106,6 +1183,20 @@ export interface Staking extends BaseContract {
     EmergencyWithdrawEvent.OutputObject
   >;
   getEvent(
+    key: "MaturedWithdrawWithdraw"
+  ): TypedContractEvent<
+    MaturedWithdrawWithdrawEvent.InputTuple,
+    MaturedWithdrawWithdrawEvent.OutputTuple,
+    MaturedWithdrawWithdrawEvent.OutputObject
+  >;
+  getEvent(
+    key: "MyAllReward"
+  ): TypedContractEvent<
+    MyAllRewardEvent.InputTuple,
+    MyAllRewardEvent.OutputTuple,
+    MyAllRewardEvent.OutputObject
+  >;
+  getEvent(
     key: "NinjaLiftInfo"
   ): TypedContractEvent<
     NinjaLiftInfoEvent.InputTuple,
@@ -1149,7 +1240,7 @@ export interface Staking extends BaseContract {
   >;
 
   filters: {
-    "AddStakingPool(uint256,address,uint256)": TypedContractEvent<
+    "AddStakingPool(uint256,address,uint256,uint256)": TypedContractEvent<
       AddStakingPoolEvent.InputTuple,
       AddStakingPoolEvent.OutputTuple,
       AddStakingPoolEvent.OutputObject
@@ -1204,7 +1295,29 @@ export interface Staking extends BaseContract {
       EmergencyWithdrawEvent.OutputObject
     >;
 
-    "NinjaLiftInfo(address,uint256,uint256,uint256)": TypedContractEvent<
+    "MaturedWithdrawWithdraw(address,uint256,uint256,uint256)": TypedContractEvent<
+      MaturedWithdrawWithdrawEvent.InputTuple,
+      MaturedWithdrawWithdrawEvent.OutputTuple,
+      MaturedWithdrawWithdrawEvent.OutputObject
+    >;
+    MaturedWithdrawWithdraw: TypedContractEvent<
+      MaturedWithdrawWithdrawEvent.InputTuple,
+      MaturedWithdrawWithdrawEvent.OutputTuple,
+      MaturedWithdrawWithdrawEvent.OutputObject
+    >;
+
+    "MyAllReward(uint256,uint256,uint256)": TypedContractEvent<
+      MyAllRewardEvent.InputTuple,
+      MyAllRewardEvent.OutputTuple,
+      MyAllRewardEvent.OutputObject
+    >;
+    MyAllReward: TypedContractEvent<
+      MyAllRewardEvent.InputTuple,
+      MyAllRewardEvent.OutputTuple,
+      MyAllRewardEvent.OutputObject
+    >;
+
+    "NinjaLiftInfo(address,uint256,uint256,uint256,uint256)": TypedContractEvent<
       NinjaLiftInfoEvent.InputTuple,
       NinjaLiftInfoEvent.OutputTuple,
       NinjaLiftInfoEvent.OutputObject

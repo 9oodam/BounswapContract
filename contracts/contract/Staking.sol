@@ -10,6 +10,8 @@ import "./WBNC.sol";
 import "./LPToken.sol";
 import "./Token.sol";
 
+import "hardhat/console.sol";
+
 contract Staking is Ownable, ReentrancyGuard { 
     
     struct UserInfo {
@@ -471,4 +473,7 @@ contract Staking is Ownable, ReentrancyGuard {
          return (pendingBNCValue, userBlockRewardPerBlockValue, estimatedUserRewardFromNinjsVlaue);
          
     }
+
+    // 계정 1 : 0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38
+    // 계정 2 : 0xabc1F3b03fB688092C8E45C799e32C6310D5bFa4
 }
