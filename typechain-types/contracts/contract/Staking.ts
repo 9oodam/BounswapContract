@@ -32,7 +32,6 @@ export interface StakingInterface extends Interface {
       | "BONUS_MULTIPLIER"
       | "addStakingPool"
       | "claimBNC"
-      | "data"
       | "deposit"
       | "dev0Addr"
       | "dev0Percent"
@@ -112,7 +111,6 @@ export interface StakingInterface extends Interface {
     functionFragment: "claimBNC",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "data", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
     values: [BigNumberish, BigNumberish]
@@ -282,7 +280,6 @@ export interface StakingInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "claimBNC", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "data", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "dev0Addr", data: BytesLike): Result;
   decodeFunctionResult(
@@ -712,8 +709,6 @@ export interface Staking extends BaseContract {
 
   claimBNC: TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
 
-  data: TypedContractMethod<[], [string], "view">;
-
   deposit: TypedContractMethod<
     [_pid: BigNumberish, _amount: BigNumberish],
     [void],
@@ -936,9 +931,6 @@ export interface Staking extends BaseContract {
   getFunction(
     nameOrSignature: "claimBNC"
   ): TypedContractMethod<[_pid: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "data"
-  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "deposit"
   ): TypedContractMethod<

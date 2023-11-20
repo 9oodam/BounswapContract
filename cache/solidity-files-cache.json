@@ -560,8 +560,8 @@
       ]
     },
     "/Users/pajion/Desktop/BounsDEX/contracts/contract/Staking.sol": {
-      "lastModificationDate": 1700440211618,
-      "contentHash": "72d9e7fe8efa2dd0341649c7179714c0",
+      "lastModificationDate": 1700444086500,
+      "contentHash": "911b84b94782077751ef80b8480b8fbe",
       "sourceName": "contracts/contract/Staking.sol",
       "solcConfig": {
         "version": "0.8.20",
