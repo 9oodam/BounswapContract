@@ -50,7 +50,6 @@ contract Data {
         return allPairs.length;
     }
 
-    // 확인 필요 
     function addPair(address pairAddress) external {
         allPairs.push(pairAddress);
     }
@@ -61,12 +60,10 @@ contract Data {
         return validatorPoolArr[to];
     }
 
-    // 확인 필요 임의로 추가함
     function validatorPoolArrLength(address validator) public view returns (uint256) {
         return validatorPoolArr[validator].length;
     }
 
-    // 확인 필요 임의로 추가함
     // validatorPoolArr 설정
     function addValidatorPoolArr(address to, address pool) public {
         validatorPoolArr[to].push(pool);

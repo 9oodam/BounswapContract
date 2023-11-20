@@ -128,13 +128,14 @@ contract InitialProxy {
     }
     // token -> bnc
     function swapExactTokensForBNC(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken) public {
+        console.log('run?');
         address[2] memory path = [inputToken, outputToken];
         swapParams.exactTokensForBNC(pairAddress, inputAmount, minToken, path, msg.sender);
     }
     // bnc -> token
-    function swapExactBNCForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken) public payable {
+    function swapExactBNCForTokens(address pairAddress, uint minToken, address inputToken, address outputToken) public payable {
         address[2] memory path = [inputToken, outputToken];
-        swapParams.exactBNCForTokens{value : inputAmount}(pairAddress, inputAmount, minToken, path, msg.sender);
+        swapParams.exactBNCForTokens{value : msg.value}(pairAddress, minToken, path, msg.sender);
     }
 
     // 2) output 값을 지정해서 스왑 
@@ -149,8 +150,8 @@ contract InitialProxy {
         swapParams.tokensForExactBNC(pairAddress, outputAmount, maxToken, path, msg.sender);
     }
     // bnc -> tokdn
-    function swapBNCForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken) public payable {
+    function swapBNCForExactTokens(address pairAddress, uint outputAmount, address inputToken, address outputToken) public payable {
         address[2] memory path = [inputToken, outputToken];
-        swapParams.bNCForExactTokens{value : maxToken}(pairAddress, outputAmount, path, msg.sender);
+        swapParams.bNCForExactTokens{value : msg.value}(pairAddress, outputAmount, path, msg.sender);
     }
 }

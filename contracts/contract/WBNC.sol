@@ -17,8 +17,9 @@ contract WBNC is Token {
         emit Deposit(owner, value);
     }
 
-    function withdraw(address owner, uint256 amount) public virtual {
+    function withdraw(address owner, uint256 amount, address to) public payable virtual {
         _burn(owner, amount);
+        to.call{value: amount}(new bytes(0));
 
         emit Withdrawal(owner, amount);
     }

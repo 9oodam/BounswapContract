@@ -44,13 +44,7 @@ export interface SwapInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "exactBNCForTokens",
-    values: [
-      AddressLike,
-      BigNumberish,
-      BigNumberish,
-      [AddressLike, AddressLike],
-      AddressLike
-    ]
+    values: [AddressLike, BigNumberish, [AddressLike, AddressLike], AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "exactTokensForBNC",
@@ -223,7 +217,6 @@ export interface Swap extends BaseContract {
   exactBNCForTokens: TypedContractMethod<
     [
       pairAddress: AddressLike,
-      inputAmount: BigNumberish,
       minToken: BigNumberish,
       path: [AddressLike, AddressLike],
       to: AddressLike
@@ -321,7 +314,6 @@ export interface Swap extends BaseContract {
   ): TypedContractMethod<
     [
       pairAddress: AddressLike,
-      inputAmount: BigNumberish,
       minToken: BigNumberish,
       path: [AddressLike, AddressLike],
       to: AddressLike

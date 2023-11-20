@@ -36,6 +36,7 @@ export interface PoolInterface extends Interface {
       | "balances"
       | "blockTimestampLast"
       | "burn"
+      | "dataParams"
       | "factory"
       | "getReserves"
       | "initialize"
@@ -101,6 +102,10 @@ export interface PoolInterface extends Interface {
     functionFragment: "burn",
     values: [AddressLike, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "dataParams",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getReserves",
@@ -158,6 +163,7 @@ export interface PoolInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "dataParams", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getReserves",
@@ -244,13 +250,20 @@ export namespace MintEvent {
   export type InputTuple = [
     sender: AddressLike,
     amount0: BigNumberish,
-    amount1: BigNumberish
+    amount1: BigNumberish,
+    liquidity: BigNumberish
   ];
-  export type OutputTuple = [sender: string, amount0: bigint, amount1: bigint];
+  export type OutputTuple = [
+    sender: string,
+    amount0: bigint,
+    amount1: bigint,
+    liquidity: bigint
+  ];
   export interface OutputObject {
     sender: string;
     amount0: bigint;
     amount1: bigint;
+    liquidity: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -259,11 +272,23 @@ export namespace MintEvent {
 }
 
 export namespace SyncEvent {
-  export type InputTuple = [reserve0: BigNumberish, reserve1: BigNumberish];
-  export type OutputTuple = [reserve0: bigint, reserve1: bigint];
+  export type InputTuple = [
+    reserve0: BigNumberish,
+    reserve1: BigNumberish,
+    price0CumulativeLast: BigNumberish,
+    price1CumulativeLast: BigNumberish
+  ];
+  export type OutputTuple = [
+    reserve0: bigint,
+    reserve1: bigint,
+    price0CumulativeLast: bigint,
+    price1CumulativeLast: bigint
+  ];
   export interface OutputObject {
     reserve0: bigint;
     reserve1: bigint;
+    price0CumulativeLast: bigint;
+    price1CumulativeLast: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -384,6 +409,8 @@ export interface Pool extends BaseContract {
     [[bigint, bigint]],
     "nonpayable"
   >;
+
+  dataParams: TypedContractMethod<[], [string], "view">;
 
   factory: TypedContractMethod<[], [string], "view">;
 
@@ -516,6 +543,9 @@ export interface Pool extends BaseContract {
     [[bigint, bigint]],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "dataParams"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "factory"
   ): TypedContractMethod<[], [string], "view">;
@@ -659,7 +689,7 @@ export interface Pool extends BaseContract {
       BurnEvent.OutputObject
     >;
 
-    "Mint(address,uint256,uint256)": TypedContractEvent<
+    "Mint(address,uint256,uint256,uint256)": TypedContractEvent<
       MintEvent.InputTuple,
       MintEvent.OutputTuple,
       MintEvent.OutputObject
@@ -670,7 +700,7 @@ export interface Pool extends BaseContract {
       MintEvent.OutputObject
     >;
 
-    "Sync(uint112,uint112)": TypedContractEvent<
+    "Sync(uint112,uint112,uint256,uint256)": TypedContractEvent<
       SyncEvent.InputTuple,
       SyncEvent.OutputTuple,
       SyncEvent.OutputObject

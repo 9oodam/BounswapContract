@@ -22,7 +22,7 @@ contract Swap {
     // 재진입 공격 방지를 위한 lock 정의
     uint private unlocked = 1;
     modifier lock() {
-        require(unlocked == 1, 'UniswapV2: LOCKED');
+        require(unlocked == 1, 'LOCKED');
         unlocked = 0;
         _;
         unlocked = 1;
@@ -103,28 +103,26 @@ contract Swap {
         address[2] calldata path,
         address to
     ) public payable returns (bool) {
+        console.log('run??');
         require(path[1] == wbncAddress, 'INVALID_PATH'); // output이 wbnc
         uint amount = getAmountOut(pairAddress, inputAmount, path);
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
         // 권한 위임 확인 필요
         Token(path[0]).transferFromTo(to, pairAddress, inputAmount);
         _swap(to, pairAddress, amount, path, address(this)); // 이 컨트랙트로 wbnc 소유주 바꿈
-        wbncParams.withdraw(pairAddress, amount); // 이 컨트랙트가 보유한 wbnc 소각
-        (bool success, ) = to.call{value: amount}(""); // 사용자에게 bnc 전송
-        require(success, "TransferHelper: ETH transfer failed");
+        wbncParams.withdraw(pairAddress, amount, to); // 이 컨트랙트가 보유한 wbnc 소각
+        console.log('bnc for user : ', amount);
     }
     function exactBNCForTokens(
         address pairAddress,
-        uint inputAmount,
         uint minToken,
         address[2] calldata path,
         address to
     ) public payable {
-        require(path[0] == wbncAddress, 'INVALID_PATH'); // input값이 wbnc
-        uint amount = getAmountOut(pairAddress, inputAmount, path);
+        // require(path[0] == wbncAddress, 'INVALID_PATH'); // input값이 wbnc
+        uint amount = getAmountOut(pairAddress, msg.value, path);
         require(amount >= minToken, "INSUFFICIENT_OUTPUT_AMOUNT");
-        wbncParams.deposit{value: inputAmount}(pairAddress, inputAmount); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
-        assert(wbncParams.transferFromTo(to, pairAddress, inputAmount)); // 발행된 wbnc 소유주를 페어로
+        wbncParams.deposit{value: msg.value}(pairAddress, msg.value); // 사용자가 넣은 bnc를 wbnc 컨트랙트로 보내고 wbnc 발행
         _swap(to, pairAddress, amount, path, to);
     }
 
@@ -154,9 +152,8 @@ contract Swap {
         require(amount <= maxToken, "INSUFFICIENT_INPUT_AMOUNT");
         Token(path[0]).transferFromTo(to, pairAddress, amount);
         _swap(to, pairAddress, outputAmount, path, address(this));
-        wbncParams.withdraw(pairAddress, outputAmount); // 이 컨트랙트가 보유한 wbnc 소각
-        (bool success, ) = to.call{value: outputAmount}(""); // 사용자에게 bnc 전송
-        require(success, "TransferHelper: ETH transfer failed");
+        wbncParams.withdraw(pairAddress, outputAmount, to); // 이 컨트랙트가 보유한 wbnc 소각
+        console.log('bnc for user : ', outputAmount);
     }
     function bNCForExactTokens(
         address pairAddress,
@@ -222,7 +219,7 @@ contract Swap {
             SafeMath.mul(balance1, 1000),
             SafeMath.mul(amount1In, 3)
         );
-        require(SafeMath.mul(balance0Adjusted, balance1Adjusted) >= SafeMath.mul(SafeMath.mul(uint(_reserve0), _reserve1), 1000 ** 2), "UniswapV2: K");
+        require(SafeMath.mul(balance0Adjusted, balance1Adjusted) >= SafeMath.mul(SafeMath.mul(uint(_reserve0), _reserve1), 1000 ** 2), "K");
         }
 
         pair._update(balance0, balance1, _reserve0, _reserve1);

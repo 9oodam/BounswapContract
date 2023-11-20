@@ -93,6 +93,7 @@ contract PoolConnector {
         Token(token).transferFromTo(to, pairAddress, amountToken);
         WBNC(wbnc).deposit{value: amountBNC}(pairAddress, amountBNC);
         liquidity = Pool(pairAddress).mint(to);
+        console.log('lp token : ', liquidity);
         if (msg.value > amountBNC) to.call{value: msg.value - amountBNC}("");
         setValidatorPoolArr(pairAddress, to);
     }
@@ -108,14 +109,15 @@ contract PoolConnector {
             to
         );
         Token(token).transferFromTo(pairAddress, to, amountToken);
-        WBNC(wbnc).withdraw(pairAddress, amountBNC);
-        to.call{value: amountBNC}("");
+        WBNC(wbnc).withdraw(pairAddress, amountBNC, to);
+        // to.call{value: amountBNC}("");
     }
 
     // 유저가 해당 풀에 공급중인 예치량 계산해서 반환
     function getUserLiquidity(address validator, address pairAddress) public view returns (uint256, uint256) {
         // lptoken 개수로 token0, token1 예치량 역계산
         uint256 lpTokenAmount = Pool(pairAddress).balanceOf(validator);
+        console.log('lp token : ', lpTokenAmount);
         (uint112 reserve0, uint112 reserve1, ) = Pool(pairAddress).getReserves();
         uint256 amount0 = SafeMath.mul(lpTokenAmount, reserve0) / Pool(pairAddress).totalSupply(); 
         uint256 amount1 = SafeMath.mul(lpTokenAmount, reserve1) / Pool(pairAddress).totalSupply(); 

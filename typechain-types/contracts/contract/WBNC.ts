@@ -103,7 +103,7 @@ export interface WBNCInterface extends Interface {
   encodeFunctionData(functionFragment: "uri", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [AddressLike, BigNumberish]
+    values: [AddressLike, BigNumberish, AddressLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "_burn", data: BytesLike): Result;
@@ -308,9 +308,9 @@ export interface WBNC extends BaseContract {
   uri: TypedContractMethod<[], [string], "view">;
 
   withdraw: TypedContractMethod<
-    [owner: AddressLike, amount: BigNumberish],
+    [owner: AddressLike, amount: BigNumberish, to: AddressLike],
     [void],
-    "nonpayable"
+    "payable"
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
@@ -404,9 +404,9 @@ export interface WBNC extends BaseContract {
   getFunction(
     nameOrSignature: "withdraw"
   ): TypedContractMethod<
-    [owner: AddressLike, amount: BigNumberish],
+    [owner: AddressLike, amount: BigNumberish, to: AddressLike],
     [void],
-    "nonpayable"
+    "payable"
   >;
 
   getEvent(

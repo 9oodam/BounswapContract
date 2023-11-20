@@ -15,7 +15,7 @@ contract Pool is Token {
     using UQ112x112 for uint224;
 
     address public factory;
-    Data private dataParams;
+    Data public dataParams;
 
     address public token0;
     address public token1;
@@ -36,9 +36,9 @@ contract Pool is Token {
         unlocked = 1;
     }
 
-    event Mint(address indexed sender, uint amount0, uint amount1);
+    event Mint(address indexed sender, uint amount0, uint amount1, uint liquidity);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Sync(uint112 reserve0, uint112 reserve1);
+    event Sync(uint112 reserve0, uint112 reserve1, uint price0CumulativeLast, uint price1CumulativeLast);
 
     constructor(address _dataAddress, string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
         factory = msg.sender;
@@ -70,7 +70,7 @@ contract Pool is Token {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
-        emit Sync(reserve0, reserve1);
+        emit Sync(reserve0, reserve1, price0CumulativeLast, price1CumulativeLast);
     }
 
     // 만약 feeTo에 address(0)이 아닌 다른 계정이 들어있으면 스위치 온 되었다는 뜻
@@ -116,7 +116,14 @@ contract Pool is Token {
 
         _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
-        emit Mint(msg.sender, amount0, amount1);
+        emit Mint(msg.sender, amount0, amount1, liquidity);
+
+        // bnc-bnb pair인 경우 govToken airdrop
+        address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
+        if((token0 == tokenAddressArr[0] && token1 == tokenAddressArr[3]) || (token1 == tokenAddressArr[0] && token0 == tokenAddressArr[3])) {
+            uint amount = liquidity / 10;
+            Token(tokenAddressArr[1])._mint(to, amount);
+        }
 
         return liquidity;
     }
@@ -148,6 +155,18 @@ contract Pool is Token {
         _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
         emit Burn(msg.sender, amount0, amount1, to);
+
+        // bnc-bnb pair인 경우 govToken burn
+        address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
+        if((token0 == tokenAddressArr[0] && token1 == tokenAddressArr[3]) || (token1 == tokenAddressArr[0] && token0 == tokenAddressArr[3])) {
+            uint amount = liquidity / 10;
+            uint govAmount = Token(tokenAddressArr[1]).balanceOf(to);
+            if(amount > govAmount) {
+                Token(tokenAddressArr[1])._burn(to, govAmount);
+            } else {
+                Token(tokenAddressArr[1])._burn(to, amount);
+            }
+        }
 
         return (amount0, amount1);
     }
