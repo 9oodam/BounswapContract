@@ -38,6 +38,7 @@ export interface PoolInterface extends Interface {
       | "burn"
       | "dataParams"
       | "factory"
+      | "getPriceTotalSupply"
       | "getReserves"
       | "initialize"
       | "kLast"
@@ -58,9 +59,7 @@ export interface PoolInterface extends Interface {
       | "uri"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "Approval" | "Burn" | "Mint" | "Sync" | "Transfer"
-  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Approval" | "Transfer"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "_burn",
@@ -107,6 +106,10 @@ export interface PoolInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getPriceTotalSupply",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getReserves",
     values?: undefined
@@ -166,6 +169,10 @@ export interface PoolInterface extends Interface {
   decodeFunctionResult(functionFragment: "dataParams", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getPriceTotalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getReserves",
     data: BytesLike
   ): Result;
@@ -214,81 +221,6 @@ export namespace ApprovalEvent {
     owner: string;
     spender: string;
     value: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace BurnEvent {
-  export type InputTuple = [
-    sender: AddressLike,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
-    to: AddressLike
-  ];
-  export type OutputTuple = [
-    sender: string,
-    amount0: bigint,
-    amount1: bigint,
-    to: string
-  ];
-  export interface OutputObject {
-    sender: string;
-    amount0: bigint;
-    amount1: bigint;
-    to: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace MintEvent {
-  export type InputTuple = [
-    sender: AddressLike,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
-    liquidity: BigNumberish
-  ];
-  export type OutputTuple = [
-    sender: string,
-    amount0: bigint,
-    amount1: bigint,
-    liquidity: bigint
-  ];
-  export interface OutputObject {
-    sender: string;
-    amount0: bigint;
-    amount1: bigint;
-    liquidity: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace SyncEvent {
-  export type InputTuple = [
-    reserve0: BigNumberish,
-    reserve1: BigNumberish,
-    price0CumulativeLast: BigNumberish,
-    price1CumulativeLast: BigNumberish
-  ];
-  export type OutputTuple = [
-    reserve0: bigint,
-    reserve1: bigint,
-    price0CumulativeLast: bigint,
-    price1CumulativeLast: bigint
-  ];
-  export interface OutputObject {
-    reserve0: bigint;
-    reserve1: bigint;
-    price0CumulativeLast: bigint;
-    price1CumulativeLast: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -413,6 +345,12 @@ export interface Pool extends BaseContract {
   dataParams: TypedContractMethod<[], [string], "view">;
 
   factory: TypedContractMethod<[], [string], "view">;
+
+  getPriceTotalSupply: TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint]],
+    "view"
+  >;
 
   getReserves: TypedContractMethod<
     [],
@@ -550,6 +488,9 @@ export interface Pool extends BaseContract {
     nameOrSignature: "factory"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "getPriceTotalSupply"
+  ): TypedContractMethod<[], [[bigint, bigint, bigint]], "view">;
+  getFunction(
     nameOrSignature: "getReserves"
   ): TypedContractMethod<
     [],
@@ -638,27 +579,6 @@ export interface Pool extends BaseContract {
     ApprovalEvent.OutputObject
   >;
   getEvent(
-    key: "Burn"
-  ): TypedContractEvent<
-    BurnEvent.InputTuple,
-    BurnEvent.OutputTuple,
-    BurnEvent.OutputObject
-  >;
-  getEvent(
-    key: "Mint"
-  ): TypedContractEvent<
-    MintEvent.InputTuple,
-    MintEvent.OutputTuple,
-    MintEvent.OutputObject
-  >;
-  getEvent(
-    key: "Sync"
-  ): TypedContractEvent<
-    SyncEvent.InputTuple,
-    SyncEvent.OutputTuple,
-    SyncEvent.OutputObject
-  >;
-  getEvent(
     key: "Transfer"
   ): TypedContractEvent<
     TransferEvent.InputTuple,
@@ -676,39 +596,6 @@ export interface Pool extends BaseContract {
       ApprovalEvent.InputTuple,
       ApprovalEvent.OutputTuple,
       ApprovalEvent.OutputObject
-    >;
-
-    "Burn(address,uint256,uint256,address)": TypedContractEvent<
-      BurnEvent.InputTuple,
-      BurnEvent.OutputTuple,
-      BurnEvent.OutputObject
-    >;
-    Burn: TypedContractEvent<
-      BurnEvent.InputTuple,
-      BurnEvent.OutputTuple,
-      BurnEvent.OutputObject
-    >;
-
-    "Mint(address,uint256,uint256,uint256)": TypedContractEvent<
-      MintEvent.InputTuple,
-      MintEvent.OutputTuple,
-      MintEvent.OutputObject
-    >;
-    Mint: TypedContractEvent<
-      MintEvent.InputTuple,
-      MintEvent.OutputTuple,
-      MintEvent.OutputObject
-    >;
-
-    "Sync(uint112,uint112,uint256,uint256)": TypedContractEvent<
-      SyncEvent.InputTuple,
-      SyncEvent.OutputTuple,
-      SyncEvent.OutputObject
-    >;
-    Sync: TypedContractEvent<
-      SyncEvent.InputTuple,
-      SyncEvent.OutputTuple,
-      SyncEvent.OutputObject
     >;
 
     "Transfer(address,address,uint256)": TypedContractEvent<

@@ -8,7 +8,6 @@ import type {
   FunctionFragment,
   Result,
   Interface,
-  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -18,7 +17,6 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
-  TypedLogDescription,
   TypedListener,
   TypedContractMethod,
 } from "../../common";
@@ -32,12 +30,11 @@ export interface SwapInterface extends Interface {
       | "exactTokensForTokens"
       | "getMaxToken"
       | "getMinToken"
+      | "getSwapAmount"
       | "tokensForExactBNC"
       | "tokensForExactTokens"
   ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
-
   encodeFunctionData(
     functionFragment: "bNCForExactTokens",
     values: [AddressLike, BigNumberish, [AddressLike, AddressLike], AddressLike]
@@ -73,6 +70,10 @@ export interface SwapInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getMinToken",
     values: [AddressLike, BigNumberish, [AddressLike, AddressLike]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSwapAmount",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "tokensForExactBNC",
@@ -120,6 +121,10 @@ export interface SwapInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getSwapAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "tokensForExactBNC",
     data: BytesLike
   ): Result;
@@ -127,37 +132,6 @@ export interface SwapInterface extends Interface {
     functionFragment: "tokensForExactTokens",
     data: BytesLike
   ): Result;
-}
-
-export namespace SwapEvent {
-  export type InputTuple = [
-    user: AddressLike,
-    pair: AddressLike,
-    amount0In: BigNumberish,
-    amount1In: BigNumberish,
-    amount0Out: BigNumberish,
-    amount1Out: BigNumberish
-  ];
-  export type OutputTuple = [
-    user: string,
-    pair: string,
-    amount0In: bigint,
-    amount1In: bigint,
-    amount0Out: bigint,
-    amount1Out: bigint
-  ];
-  export interface OutputObject {
-    user: string;
-    pair: string;
-    amount0In: bigint;
-    amount1In: bigint;
-    amount0Out: bigint;
-    amount1Out: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface Swap extends BaseContract {
@@ -269,6 +243,12 @@ export interface Swap extends BaseContract {
     "view"
   >;
 
+  getSwapAmount: TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint, bigint]],
+    "view"
+  >;
+
   tokensForExactBNC: TypedContractMethod<
     [
       pairAddress: AddressLike,
@@ -370,6 +350,9 @@ export interface Swap extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getSwapAmount"
+  ): TypedContractMethod<[], [[bigint, bigint, bigint, bigint]], "view">;
+  getFunction(
     nameOrSignature: "tokensForExactBNC"
   ): TypedContractMethod<
     [
@@ -396,24 +379,5 @@ export interface Swap extends BaseContract {
     "nonpayable"
   >;
 
-  getEvent(
-    key: "Swap"
-  ): TypedContractEvent<
-    SwapEvent.InputTuple,
-    SwapEvent.OutputTuple,
-    SwapEvent.OutputObject
-  >;
-
-  filters: {
-    "Swap(address,address,uint256,uint256,uint256,uint256)": TypedContractEvent<
-      SwapEvent.InputTuple,
-      SwapEvent.OutputTuple,
-      SwapEvent.OutputObject
-    >;
-    Swap: TypedContractEvent<
-      SwapEvent.InputTuple,
-      SwapEvent.OutputTuple,
-      SwapEvent.OutputObject
-    >;
-  };
+  filters: {};
 }

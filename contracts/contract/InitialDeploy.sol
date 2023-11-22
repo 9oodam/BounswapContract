@@ -46,7 +46,7 @@ contract InitialDeploy {
                 factoryParams.createPair(tokenAddress[i], tokenAddress[j]);
                 // 유동성 공급
                 uint amount = 100 * (10 ** 18);
-                (uint amountA, uint amountB, uint liquidity) = poolConnectorParams.addLiquidity(tokenAddress[i], tokenAddress[j], amount, amount, address(this));
+                poolConnectorParams.addLiquidity(tokenAddress[i], tokenAddress[j], amount, amount, address(this));
             }
         }
     }

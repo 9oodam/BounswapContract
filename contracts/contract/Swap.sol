@@ -13,6 +13,11 @@ contract Swap {
     WBNC wbncParams;
     address wbncAddress;
 
+    uint _amount0In;
+    uint _amount1In;
+    uint _amount0Out;
+    uint _amount1Out;
+
     constructor(address _dataAddress, address _wbncAddress) {
         dataParams = Data(_dataAddress);
         wbncParams = WBNC(_wbncAddress);
@@ -28,14 +33,14 @@ contract Swap {
         unlocked = 1;
     }
 
-    event Swap(
-        address indexed user,
-        address indexed pair,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out
-    );
+    // event Swap(
+    //     address indexed user,
+    //     address indexed pair,
+    //     uint amount0In,
+    //     uint amount1In,
+    //     uint amount0Out,
+    //     uint amount1Out
+    // );
 
     // minToken 계산
     function getMinToken(address pairAddress, uint inputAmount, address[2] memory path) external view returns (uint minToken) {
@@ -223,11 +228,19 @@ contract Swap {
         }
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(userAddress, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        // emit Swap(userAddress, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        _amount0In = amount0In;
+        _amount1In = amount1In;
+        _amount0Out = amount0Out;
+        _amount1Out = amount1Out;
         console.log('swap succeed : ', amount0In+amount0Out, amount1In+amount1Out);
 
         // Swap의 0.3% 수수료를 풀 공급자에게 배분
         addUnclaimedFee(pairAddress, SafeMath.mul(amount0In, 3), SafeMath.mul(amount1In, 3));
+    }
+
+    function getSwapAmount() external view returns (uint, uint, uint, uint) {
+        return (_amount0In, _amount1In, _amount0Out, _amount1Out);
     }
 
     // unclaimed fee 누적시키기
