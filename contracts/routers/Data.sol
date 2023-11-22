@@ -17,11 +17,7 @@ contract Data {
         string token0Symbol;
         string token1Symbol;
         uint256 tvl;
-    }
-    struct MyPoolDetail {
-        PoolDetail pooldetail;
-        uint256 token0Amount;
-        uint256 token1Amount;
+        uint balance;
     }
     struct TokenDetail {
         address tokenAddress;
@@ -29,6 +25,7 @@ contract Data {
         string symbol;
         string uri;
         uint256 tvl;
+        uint balance;
     }
 
     // blockTimeStamp로 blockNumber 찾기
@@ -108,7 +105,7 @@ contract Data {
     function getAllPools() public view returns (PoolDetail[] memory) {
         PoolDetail[] memory arr = new PoolDetail[](allPairs.length); 
         for (uint i=0; i<allPairs.length; i++) {
-            arr[i] = getEachPool(allPairs[i]);
+            arr[i] = getEachPool(allPairs[i], address(0));
         }
         return arr;
     }
@@ -118,26 +115,25 @@ contract Data {
         address[] memory userPool = validatorPoolArr[userAddress];
         PoolDetail[] memory arr = new PoolDetail[](userPool.length);
         for (uint i=0; i<userPool.length; i++) {
-            arr[i] = getEachPool(userPool[i]);
+            arr[i] = getEachPool(userPool[i], userAddress);
         }
         return arr;
     }
 
     // 각 pool detail 정보
-    function getEachPool(address pairAddress) public view returns (PoolDetail memory) {
+    function getEachPool(address pairAddress, address userAddress) public view returns (PoolDetail memory) {
         Pool pool = Pool(pairAddress);
         Token token0 = Token(pool.token0());
         Token token1 = Token(pool.token1());
         (uint112 reserve0, uint112 reserve1,) = pool.getReserves();
         uint256 tvl = reserve0 + reserve1;
-        return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl);
-    }
 
-    // my pool detail page에서 보여줄 정보
-    // function getUserPoolDetail(address pairAddress) public view returns (MyPoolDetail memory) {
-    //     (uint256 amount0, uint256 amount1) = Pool(pairAddress).getUserLiquidity(msg.sender); 
-    //     return MyPoolDetail(getEachPool(pairAddress), amount0, amount1);
-    // }
+        if (userAddress == address(0)) {
+            return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, 0);
+        } else {
+            return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, Pool(pairAddress).balanceOf(userAddress));
+        }
+    }
 
     // pool detail page에서 사용자가 아직 미청구한 수수료
     function getUnclaimedFee(address validator, address pairAddress) public view returns (uint256, uint256) {
@@ -154,6 +150,22 @@ contract Data {
         return allTokens;
     }
 
+    // 사용자가 보유하고 있는 토큰 목록
+    function getUserTokens(address validator) public view returns (TokenDetail[] memory) {
+        TokenDetail[] memory arr = new TokenDetail[](allTokens.length);
+        uint index = 0;
+        for(uint i=0; i<allTokens.length; i++) {
+            if (Token(allTokens[i]).balanceOf(validator) > 0) {
+                arr[index] = getEachToken(allTokens[i], Token(allTokens[i]).balanceOf(validator));
+                index++;
+            }
+        }
+        assembly {
+            mstore(arr, index)
+        }
+        return arr;
+    }
+
     // 토큰 배열에 토큰 추가
     function addToken(address token) public {
         allTokens.push(token);
@@ -163,13 +175,13 @@ contract Data {
     function getAllTokens() public view returns (TokenDetail[] memory) {
         TokenDetail[] memory arr = new TokenDetail[](allTokens.length);
         for(uint i=0; i<allTokens.length; i++) {
-            arr[i] = getEachToken(allTokens[i]);
+            arr[i] = getEachToken(allTokens[i], 0);
         }
         return arr;
     }
 
     // 특정 토큰 정보 반환하는 함수
-    function getEachToken(address tokenAddress) public view returns (TokenDetail memory) {
+    function getEachToken(address tokenAddress, uint balance) public view returns (TokenDetail memory) {
         Token token = Token(tokenAddress);
         uint256 tvl = 0;
         for(uint i=0; i<allPairs.length; i++) {
@@ -177,7 +189,9 @@ contract Data {
             uint256 volume = (allPairs[i] == Pool(allPairs[i]).token0()) ? reserve0 : reserve1;
             tvl += volume;
         }
-        return TokenDetail(tokenAddress, token.name(), token.symbol(), token.uri(), tvl);
+        
+        return TokenDetail(tokenAddress, token.name(), token.symbol(), token.uri(), tvl, balance);
+        
     }
 
     // 24시간/7일 전부터 현재까지 발생한 Block number 반환
