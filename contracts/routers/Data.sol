@@ -153,15 +153,8 @@ contract Data {
     // 사용자가 보유하고 있는 토큰 목록
     function getUserTokens(address validator) public view returns (TokenDetail[] memory) {
         TokenDetail[] memory arr = new TokenDetail[](allTokens.length);
-        uint index = 0;
         for(uint i=0; i<allTokens.length; i++) {
-            if (Token(allTokens[i]).balanceOf(validator) > 0) {
-                arr[index] = getEachToken(allTokens[i], Token(allTokens[i]).balanceOf(validator));
-                index++;
-            }
-        }
-        assembly {
-            mstore(arr, index)
+            arr[i] = getEachToken(allTokens[i], Token(allTokens[i]).balanceOf(validator));
         }
         return arr;
     }
