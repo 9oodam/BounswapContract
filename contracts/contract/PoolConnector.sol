@@ -27,6 +27,19 @@ contract PoolConnector {
         (uint reserveA, uint reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
         tokenBamount = reserveB * tokenAamount / reserveA;
     }
+    // 유동성 제거시 퍼센테이지 계산
+    function getRemoveAmount(
+        address pairAddress,
+        uint percentage,
+        address to
+    ) external view returns (uint amount0, uint amount1) {
+        uint totalLPTokenSupply = Pool(pairAddress).totalSupply();
+        uint userLPTokenSupply = Pool(pairAddress).balanceOf(to);
+        uint removeAmount = userLPTokenSupply * percentage / 100; // 유저가 가지고 있는 수량에서 몇퍼센트 제거할건지
+        (uint112 reserve0, uint112 reserve1, ) = Pool(pairAddress).getReserves();
+        amount0 = removeAmount * reserve0 / totalLPTokenSupply;
+        amount1 = removeAmount * reserve1 / totalLPTokenSupply;
+    }
 
     function _addLiquidity(
         address pairAddress,
@@ -43,7 +56,6 @@ contract PoolConnector {
             if (amountBOptimal <= amountBDesired) {
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-                // uint amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
                 uint amountAOptimal = SafeMath.mul(amountBDesired, reserveA) / reserveB;
                 assert(amountAOptimal <= amountADesired);
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
@@ -56,8 +68,11 @@ contract PoolConnector {
         address tokenA, address tokenB,
         uint amountADesired, uint amountBDesired,
         address to
-    ) public returns (uint amountA, uint amountB, uint liquidity) {
-        address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
+    ) public returns (address pairAddress, uint amountA, uint amountB, uint liquidity) {
+        if (factoryParams.getPairAddress(tokenA, tokenB) == address(0)) {
+            factoryParams.createPair(tokenA, tokenB);
+        }
+        pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
         (amountA, amountB) = _addLiquidity(pairAddress, tokenA, tokenB, amountADesired, amountBDesired);
         Token(tokenA).transferFromTo(to, pairAddress, amountA);
         Token(tokenB).transferFromTo(to, pairAddress, amountB);
@@ -68,14 +83,12 @@ contract PoolConnector {
         address tokenA, address tokenB,
         uint percentage,
         address to
-    ) public returns (uint amountA, uint amountB) {
-        address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
+    ) public returns (address pairAddress, uint amount0, uint amount1) {
+        pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
         uint removeAmount = Pool(pairAddress).balanceOf(to) * percentage / 100; // 유저가 가지고 있는 수량에서 몇퍼센트 제거할건지
         console.log('removeAmount : ', removeAmount);
         Pool(pairAddress).transferFromTo(to, pairAddress, removeAmount); // 계산된 Lp token 수량만큼 페어에 전송
-        (uint amount0, uint amount1) = Pool(pairAddress).burn(to, percentage);
-        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
+        (amount0, amount1) = Pool(pairAddress).burn(to, percentage);
     }
 
     // bnc-token
@@ -83,8 +96,11 @@ contract PoolConnector {
         address token, address wbnc,
         uint amountTokenDesired,
         address to
-    ) public payable returns (uint amountToken, uint amountBNC, uint liquidity) {
-        address pairAddress = factoryParams.getPairAddress(token, wbnc);
+    ) public payable returns (address pairAddress, uint amountToken, uint amountBNC, uint liquidity) {
+        if (factoryParams.getPairAddress(token, wbnc) == address(0)) {
+            factoryParams.createPair(token, wbnc);
+        }
+        pairAddress = factoryParams.getPairAddress(token, wbnc);
         (amountToken, amountBNC) = _addLiquidity(
             pairAddress,
             token, wbnc,
@@ -101,13 +117,16 @@ contract PoolConnector {
         address token, address wbnc,
         uint percentage,
         address to
-    ) public returns (uint amountToken, uint amountBNC) {
-        address pairAddress = factoryParams.getPairAddress(token, wbnc);
-        (amountToken, amountBNC) = removeLiquidity(
+    ) public returns (address pairAddress, uint amount0, uint amount1) {
+    // ) public returns (uint amount0, uint amount1, uint price0, uint price1, uint totalSupply) {
+        pairAddress = factoryParams.getPairAddress(token, wbnc);
+        (, uint amountToken, uint amountBNC) = removeLiquidity(
             token, wbnc,
             percentage,
             to
         );
+        (address token0, address token1) = token < wbnc ? (token, wbnc) : (wbnc, token);
+        (amount0, amount1) = token == token0 ? (amountToken, amountBNC) : (amountBNC, amountToken);
         Token(token).transferFromTo(pairAddress, to, amountToken);
         WBNC(wbnc).withdraw(pairAddress, amountBNC, to);
         // to.call{value: amountBNC}("");

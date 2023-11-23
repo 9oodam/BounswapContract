@@ -36,9 +36,9 @@ contract Pool is Token {
         unlocked = 1;
     }
 
-    event Mint(address indexed sender, uint amount0, uint amount1, uint liquidity);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Sync(uint112 reserve0, uint112 reserve1, uint price0CumulativeLast, uint price1CumulativeLast);
+    // event Mint(address indexed sender, uint amount0, uint amount1, uint liquidity);
+    // event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    // event Sync(uint112 reserve0, uint112 reserve1, uint price0CumulativeLast, uint price1CumulativeLast);
 
     constructor(address _dataAddress, string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
         factory = msg.sender;
@@ -70,7 +70,7 @@ contract Pool is Token {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
-        emit Sync(reserve0, reserve1, price0CumulativeLast, price1CumulativeLast);
+        // emit Sync(reserve0, reserve1, price0CumulativeLast, price1CumulativeLast);
     }
 
     // 만약 feeTo에 address(0)이 아닌 다른 계정이 들어있으면 스위치 온 되었다는 뜻
@@ -116,7 +116,7 @@ contract Pool is Token {
 
         _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
-        emit Mint(msg.sender, amount0, amount1, liquidity);
+        // emit Mint(msg.sender, amount0, amount1, liquidity);
 
         // bnc-bnb pair인 경우 govToken airdrop
         address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
@@ -154,7 +154,6 @@ contract Pool is Token {
 
         _update(balance0, balance1, reserve0, reserve1);
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
-        emit Burn(msg.sender, amount0, amount1, to);
 
         // bnc-bnb pair인 경우 govToken burn
         address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
@@ -168,7 +167,13 @@ contract Pool is Token {
             }
         }
 
+        // uint _price0CumulativeLast = price0CumulativeLast;
+        // uint _price1CumulativeLast = price1CumulativeLast;
         return (amount0, amount1);
+    }
+
+    function getPriceTotalSupply() external view returns (uint, uint, uint) {
+        return (price0CumulativeLast, price1CumulativeLast, totalSupply);
     }
 
     function skim(address to) external lock {
