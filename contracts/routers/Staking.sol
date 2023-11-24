@@ -501,4 +501,21 @@ contract Staking is Ownable, ReentrancyGuard {
             return (0, 0, 0);
         }
     }
+    /// @notice 풀의 정보 반환
+    function getPoolInfo(uint256 _pid) public view returns (PoolInfo memory) {
+        return poolInfo[_pid];
+    }
+    /// @notice 탈주자 정보 반환 
+    function getNinjaInfo(uint256 _pid, address _user) public view returns (NinjaInfo memory) {
+        return ninjaInfo[_pid][_user];
+    }
+    /// @notice 유저의 정보 반환
+    function getUserInfo(uint256 _pid, address _user) public view returns (UserInfo memory) {
+        return userInfo[_pid][_user];
+    }
+    /// @notice 해당 pool에 총 예치된 LP토큰 수량
+    function getTotalLPToken(uint256 _pid) public view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        return pool.lpToken.balanceOf(address(this));
+    }
 }
