@@ -8,18 +8,19 @@ contract WBNC is Token {
 
     event Withdrawal(address indexed to, uint256 amount);
 
-    constructor(string memory _name, string memory _symbol, string memory _uri) Token(_name, _symbol, 0, _uri) {
+    constructor(string memory _name, string memory _symbol, uint _amount, string memory _uri) Token(_name, _symbol, _amount, _uri) {
     }
 
-    function deposit(uint value) public payable virtual {
-        _mint(msg.sender, value);
+    function deposit(address to, uint value) public payable virtual {
+        _mint(to, value);
 
-        emit Deposit(msg.sender, value);
+        emit Deposit(to, value);
     }
 
-    function withdraw(uint256 amount) public virtual {
-        _burn(msg.sender, amount);
+    function withdraw(address owner, uint256 amount, address to) public virtual {
+        _burn(owner, amount);
+        to.call{value: amount}(new bytes(0));
 
-        emit Withdrawal(msg.sender, amount);
+        emit Withdrawal(owner, amount);
     }
 }
