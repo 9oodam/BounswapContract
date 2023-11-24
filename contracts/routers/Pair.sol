@@ -6,6 +6,7 @@ import "hardhat/console.sol";
 import "../contract/Factory.sol";
 import "../contract/PoolConnector.sol";
 import "../contract/Swap.sol";
+import "../contract/Pool.sol";
 import "../contract/Token.sol";
 
 contract InitialProxy {
@@ -118,17 +119,26 @@ contract InitialProxy {
         poolConnectorParams.claimFee(msg.sender, pairAddress);
     }
 
+
+
     // Swap.sol
 
-    function swapGetMinToken(address pairAddress, uint inputAmount, address inputToken, address outputToken) public view returns (uint) {
+    // getInputAmount / getOutputAmount 계산
+    function swapGetAmountOut(address pairAddress, uint inputAmount, address inputToken, address outputToken) public view returns (uint) {
         address[2] memory path = [inputToken, outputToken];
-        uint minToken = swapParams.getMinToken(pairAddress, inputAmount, path);
-        return minToken;
+        uint amountOut = swapParams.getAmountOut(pairAddress, inputAmount, path);
+        return amountOut;
     }
-    function swapGetMaxToken(address pairAddress, uint outputAmount, address inputToken, address outputToken) public view returns (uint) {
+    function swapGetAmountIn(address pairAddress, uint outputAmount, address inputToken, address outputToken) public view returns (uint) {
         address[2] memory path = [inputToken, outputToken];
-        uint maxToken = swapParams.getMaxToken(pairAddress, outputAmount, path);
-        return maxToken;
+        uint amountIn = swapParams.getAmountIn(pairAddress, outputAmount, path);
+        return amountIn;
+    }
+    // ouputToken의 reserve 반환 (이 이하로만 교환 가능)
+    function poolGetOutputReserve(address pairAddress, address outputToken) public view returns (uint112) {
+        (uint112 reserve0, uint112 reserve1,) = Pool(pairAddress).getReserves();
+        uint112 outputReserve = (Pool(pairAddress).token0() == outputToken) ? reserve0 : reserve1;
+        return outputReserve;
     }
 
     // 1) input 값을 지정해서 스왑

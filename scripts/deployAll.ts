@@ -30,10 +30,12 @@ async function main() {
   // 5) Factory, Swap contract address 담아서 Pair.sol 배포 (== InitialProxy를 Pair로 변경)
   const PairContract = await ethers.deployContract("InitialProxy", [factoryAddress, poolConnectorAddress, swapAddress, tokenAddressArr[0]]);
   await PairContract.waitForDeployment();
+  const pairAddress = await PairContract.getAddress();
 
   // 6) Governance
   const GovContract = await ethers.deployContract("Governance", [tokenAddressArr[1]]);
   await GovContract.waitForDeployment();
+  const govAddress = await GovContract.getAddress();
 
   // 7) Staking
   const BNCTokenAddress = tokenAddressArr[0]; 
@@ -41,8 +43,8 @@ async function main() {
   const dev0Percent = 1000; 
   const stakingPercent = 5000; 
   const BNCPerBlock = 1; // 1 BNC
-  const startBlock = 123456; 
-  const initialOwner = "0x0000000000000000000000000000000000000003"; // Owner
+  const startBlock = 0; 
+  const initialOwner = "0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38"; // Owner
   
     const StakingContract = await ethers.deployContract("Staking", [
       BNCTokenAddress,
@@ -55,12 +57,16 @@ async function main() {
       initialOwner
     ]);
     await StakingContract.waitForDeployment();
-    const stakingAddress = StakingContract.getAddress();
+    const stakingAddress = await StakingContract.getAddress();
     // ------------------
   
-  console.log(
-    dataAddress
-  )
+    console.log('data contract : ', dataAddress);
+    console.log('pair contract : ', pairAddress);
+    console.log('gov contract : ', govAddress);
+    console.log('staking contract : ', stakingAddress);
+
+    console.log('tokenAddressArr : ', tokenAddressArr);
+    console.log('pairAddressArr : ', pairAddressArr);
 }
 
 main().catch((error) => {

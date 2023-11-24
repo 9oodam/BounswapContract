@@ -12,6 +12,8 @@ contract Data {
     mapping (address validator => address[] pairAddress) public validatorPoolArr;
     struct PoolDetail {
         address pairAddress;
+        address token0;
+        address token1;
         string token0Uri;
         string token1Uri;
         string token0Symbol;
@@ -129,9 +131,9 @@ contract Data {
         uint256 tvl = reserve0 + reserve1;
 
         if (userAddress == address(0)) {
-            return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, 0);
+            return PoolDetail(pairAddress, pool.token0(), pool.token1(), token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, 0);
         } else {
-            return PoolDetail(pairAddress, token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, Pool(pairAddress).balanceOf(userAddress));
+            return PoolDetail(pairAddress, pool.token0(), pool.token1(), token0.uri(), token1.uri(), token0.symbol(), token1.symbol(), tvl, Pool(pairAddress).balanceOf(userAddress));
         }
     }
 

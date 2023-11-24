@@ -42,23 +42,12 @@ contract Swap {
     //     uint amount1Out
     // );
 
-    // minToken 계산
-    function getMinToken(address pairAddress, uint inputAmount, address[2] memory path) external view returns (uint minToken) {
-        uint amount = getAmountOut(pairAddress, inputAmount, path); // output
-        minToken = amount * 995 / 1000;
-    }
-    // maxToken 계산
-    function getMaxToken(address pairAddress, uint outputAmount, address[2] memory path) external view returns (uint maxToken) {
-        uint amount = getAmountIn(pairAddress, outputAmount, path);
-        maxToken = amount / 995 * 1000;
-    }
-
     // 사용자가 input에 숫자 넣었을 떄 out에 나올 예상량 계산
     function getAmountOut(
         address pairAddress,
         uint inputAmount, // A
         address[2] memory path
-    ) internal view returns (uint amountOut) { // B 
+    ) public view returns (uint amountOut) { // B 
         // CPMM => AY / (A+X) = B 
         require(inputAmount > 0, "INSUFFICIENT_INPUT_AMOUNT");
         Pool pool = Pool(pairAddress);
@@ -75,7 +64,7 @@ contract Swap {
         address pairAddress,
         uint outputAmount, // B
         address[2] memory path
-    ) internal view returns (uint amountIn) { // A
+    ) public view returns (uint amountIn) { // A
         // CPMM => XB / (Y - B) = A
         require(outputAmount > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
         Pool pool = Pool(pairAddress);

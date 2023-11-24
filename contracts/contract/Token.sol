@@ -87,6 +87,6 @@ contract Token is IERC20 {
         return string.concat(_baseURI(), _imageUri);
     }
     function _baseURI() internal pure returns (string memory) {
-        return "https://crimson-generous-ant-395.mypinata.cloud/ipfs/";
+        return "https://apricot-wrong-platypus-336.mypinata.cloud/ipfs/QmbinbebbvJdoEMe1hCfWoqLmSTh5kGD8h5RRd83wsd2Sd/";
     }
 }
