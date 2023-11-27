@@ -172,8 +172,8 @@ contract Pool is Token {
         return (amount0, amount1);
     }
 
-    function getPriceTotalSupply() external view returns (uint, uint, uint) {
-        return (price0CumulativeLast, price1CumulativeLast, totalSupply);
+    function getPriceTotalSupply() external view returns (address, address, uint, uint, uint) {
+        return (token0, token1, price0CumulativeLast, price1CumulativeLast, totalSupply);
     }
 
     function skim(address to) external lock {

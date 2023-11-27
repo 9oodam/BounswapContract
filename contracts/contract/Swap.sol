@@ -13,6 +13,8 @@ contract Swap {
     WBNC wbncParams;
     address wbncAddress;
 
+    address token0Address;
+    address token1Address;
     uint _amount0In;
     uint _amount1In;
     uint _amount0Out;
@@ -192,6 +194,9 @@ contract Swap {
         // if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out);
         balance0 = Token(_token0).balanceOf(pairAddress);
         balance1 = Token(_token1).balanceOf(pairAddress);
+
+        token0Address = _token0;
+        token1Address = _token1;
         }
 
         // 사용자가 token0을 유동성 풀에 추가했을 때만 amount0In을 계산 아니면 0
@@ -218,6 +223,7 @@ contract Swap {
 
         pair._update(balance0, balance1, _reserve0, _reserve1);
         // emit Swap(userAddress, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+
         _amount0In = amount0In;
         _amount1In = amount1In;
         _amount0Out = amount0Out;
@@ -228,8 +234,8 @@ contract Swap {
         addUnclaimedFee(pairAddress, SafeMath.mul(amount0In, 3), SafeMath.mul(amount1In, 3));
     }
 
-    function getSwapAmount() external view returns (uint, uint, uint, uint) {
-        return (_amount0In, _amount1In, _amount0Out, _amount1Out);
+    function getSwapAmount() external view returns (address, address, uint, uint, uint, uint) {
+        return (token0Address, token1Address, _amount0In, _amount1In, _amount0Out, _amount1Out);
     }
 
     // unclaimed fee 누적시키기

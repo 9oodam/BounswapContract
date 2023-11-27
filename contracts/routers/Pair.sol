@@ -22,10 +22,25 @@ contract InitialProxy {
     // bool isSucceed = true;
     // bool isSucceedPayable = true;
 
-    event Mint(address indexed sender, address pairAddress, uint amount0, uint amount1, uint liquidity, uint price0, uint price1, uint totalSupply);
-    event Burn(address indexed sender, address pairAddress, uint amount0, uint amount1, uint price0, uint price1, uint totalSupply);
+    event Mint(
+        address indexed sender, address pairAddress,
+        address token0, address token1,
+        uint amount0, uint amount1, uint liquidity,
+        uint price0, uint price1, uint totalSupply,
+        uint timestamp);
+    event Burn(
+        address indexed sender, address pairAddress,
+        address token0, address token1,
+        uint amount0, uint amount1,
+        uint price0, uint price1, uint totalSupply,
+        uint timestamp);
     // event Sync(uint112 reserve0, uint112 reserve1, uint price0CumulativeLast, uint price1CumulativeLast);
-    event SwapAmount(address indexed sender, address pairAddress, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out);
+    event SwapAmount(
+        address indexed sender, address pairAddress,
+        address token0, address token1,
+        uint amount0In, uint amount1In, uint amount0Out, uint amount1Out,
+        uint timestamp
+    );
 
     constructor(address _factoryAddress, address _poolConnectorAddress, address _swapAddress, address _wbncAddress) {
         factoryParams = Factory(_factoryAddress);
@@ -86,27 +101,28 @@ contract InitialProxy {
 
     function poolAddLiquidity(address tokenA, address tokenB, uint amountADesired, uint amountBDesired) public {
         (address pairAddress, uint amountA, uint amountB, uint liquidity) = poolConnectorParams.addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, msg.sender);
-        (uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
+        (address token0, address token1, uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
         console.log('addLiquidity Succeed : ', amountA, amountB, liquidity);
-        emit Mint(msg.sender, pairAddress, amountA, amountB, liquidity, price0, price1, totalSupply);
+        emit Mint(msg.sender, pairAddress, token0, token1, amountA, amountB, liquidity, price0, price1, totalSupply, block.timestamp);
     }
     function poolAddLiquidityBNC(address token, uint amountDesired) public payable {
         (address pairAddress, uint amountToken, uint amountBNC, uint liquidity) = poolConnectorParams.addLiquidityBNC{value: msg.value}(token, wbncAddress, amountDesired, msg.sender);
-        (uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
+        (address token0, address token1, uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
         console.log('addLiquidity Succeed : ', amountToken, amountBNC, liquidity);
-        emit Mint(msg.sender, pairAddress, amountToken, amountBNC, liquidity, price0, price1, totalSupply);
+        console.log(price0, price1);
+        emit Mint(msg.sender, pairAddress, token0, token1, amountToken, amountBNC, liquidity, price0, price1, totalSupply, block.timestamp);
     }
     function poolRemoveLiquidity(address tokenA, address tokenB, uint percentage) public {
         (address pairAddress, uint amount0, uint amount1) = poolConnectorParams.removeLiquidity(tokenA, tokenB, percentage, msg.sender);
-        (uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
+        (address token0, address token1, uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
         console.log('removeLiquidity Succeed : ', amount0, amount1);
-        emit Burn(msg.sender, pairAddress, amount0, amount1, price0, price1, totalSupply);
+        emit Burn(msg.sender, pairAddress, token0, token1, amount0, amount1, price0, price1, totalSupply, block.timestamp);
     }
     function poolRemoveLiquidityBNC(address token, uint percentage) public {
         (address pairAddress, uint amount0, uint amount1) = poolConnectorParams.removeLiquidityBNC(token, wbncAddress, percentage, msg.sender);
-        (uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
+        (address token0, address token1, uint price0, uint price1, uint totalSupply) = Pool(pairAddress).getPriceTotalSupply();
         console.log('removeLiquidity Succeed : ', amount0, amount1);
-        emit Burn(msg.sender, pairAddress, amount0, amount1, price0, price1, totalSupply);
+        emit Burn(msg.sender, pairAddress, token0, token1, amount0, amount1, price0, price1, totalSupply, block.timestamp);
     }
 
     // 유저가 공급 중인 예치량 반환
@@ -146,22 +162,22 @@ contract InitialProxy {
     function swapExactTokensForTokens(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken) public {
         address[2] memory path = [inputToken, outputToken];
         swapParams.exactTokensForTokens(pairAddress, inputAmount, minToken, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
     // token -> bnc
     function swapExactTokensForBNC(address pairAddress, uint inputAmount, uint minToken, address inputToken, address outputToken) public {
         address[2] memory path = [inputToken, outputToken];
         swapParams.exactTokensForBNC(pairAddress, inputAmount, minToken, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
     // bnc -> token
     function swapExactBNCForTokens(address pairAddress, uint minToken, address inputToken, address outputToken) public payable {
         address[2] memory path = [inputToken, outputToken];
         swapParams.exactBNCForTokens{value : msg.value}(pairAddress, minToken, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
 
     // 2) output 값을 지정해서 스왑 
@@ -169,21 +185,21 @@ contract InitialProxy {
     function swapTokensForExactTokens(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken) public {
         address[2] memory path = [inputToken, outputToken];
         swapParams.tokensForExactTokens(pairAddress, outputAmount, maxToken, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
     // token -> bnc
     function swapTokensForExactBNC(address pairAddress, uint outputAmount, uint maxToken, address inputToken, address outputToken) public {
         address[2] memory path = [inputToken, outputToken];
         swapParams.tokensForExactBNC(pairAddress, outputAmount, maxToken, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
     // bnc -> tokdn
     function swapBNCForExactTokens(address pairAddress, uint outputAmount, address inputToken, address outputToken) public payable {
         address[2] memory path = [inputToken, outputToken];
         swapParams.bNCForExactTokens{value : msg.value}(pairAddress, outputAmount, path, msg.sender);
-        (uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
-        emit SwapAmount(msg.sender, pairAddress, amount0In, amount1In, amount0Out, amount1Out);
+        (address token0, address token1, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out) = swapParams.getSwapAmount();
+        emit SwapAmount(msg.sender, pairAddress, token0, token1, amount0In, amount1In, amount0Out, amount1Out, block.timestamp);
     }
 }

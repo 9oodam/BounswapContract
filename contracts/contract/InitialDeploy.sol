@@ -20,7 +20,7 @@ contract InitialDeploy {
         WBNC wbnc = new WBNC('Bounce Coin', 'BNC', 10000, "BNC.png");
         Token gov = new Token('Governance', 'GOV', 0, "GOV.png");
 		Token eth = new Token('Ether', 'ETH', 10000, "ETH.png");
-		Token usdt = new Token('United States Department of the Treasury', 'USDT', 10000, "USDT.png");
+		Token usdt = new Token('Tether USD', 'USDT', 10000, "USDT.png");
 		Token bnb = new Token ('Binance Coin', 'BNB', 10000, "BNB.png");
 
         factoryParams = Factory(_factyroAddress);
@@ -45,7 +45,7 @@ contract InitialDeploy {
                 // 페어 생성
                 factoryParams.createPair(tokenAddress[i], tokenAddress[j]);
                 // 유동성 공급
-                uint amount = 100 * (10 ** 18);
+                uint amount = 1000 * (10 ** 18);
                 poolConnectorParams.addLiquidity(tokenAddress[i], tokenAddress[j], amount, amount, address(this));
             }
         }
