@@ -39,26 +39,24 @@ async function main() {
 
   // 7) Staking
   const BNCTokenAddress = tokenAddressArr[0]; 
-  const dev0Addr = "0x0000000000000000000000000000000000000002"; 
-  const dev0Percent = 1000; 
-  const stakingPercent = 5000; 
-  const BNCPerBlock = 1; // 1 BNC
+  const dev0Addr = "0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38"; 
+  const dev0Percent = 0; 
+  const stakingPercent = 10000; 
+  const BNCPerBlock = 1; // BNC
   const startBlock = 0; 
   const initialOwner = "0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38"; // Owner
   
-    const StakingContract = await ethers.deployContract("Staking", [
-      BNCTokenAddress,
-      // dataAddress,
-      dev0Addr,
-      dev0Percent,
-      stakingPercent,
-      BNCPerBlock,
-      startBlock,
-      initialOwner
-    ]);
-    await StakingContract.waitForDeployment();
-    const stakingAddress = await StakingContract.getAddress();
-    // ------------------
+  const StakingContract = await ethers.deployContract("Staking", [
+    BNCTokenAddress,
+    dev0Addr,
+    dev0Percent,
+    stakingPercent,
+    BNCPerBlock,
+    startBlock,
+    initialOwner
+  ]);
+  await StakingContract.waitForDeployment();
+  const stakingAddress = await StakingContract.getAddress();
   
     console.log('data contract : ', dataAddress);
     console.log('pair contract : ', pairAddress);

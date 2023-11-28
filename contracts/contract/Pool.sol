@@ -121,8 +121,8 @@ contract Pool is Token {
         // bnc-bnb pair인 경우 govToken airdrop
         address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
         if((token0 == tokenAddressArr[0] && token1 == tokenAddressArr[3]) || (token1 == tokenAddressArr[0] && token0 == tokenAddressArr[3])) {
-            uint amount = liquidity / 10;
-            Token(tokenAddressArr[1])._mint(to, amount);
+            // uint amount = liquidity / 10;
+            Token(tokenAddressArr[1])._mint(to, liquidity);
         }
 
         return liquidity;

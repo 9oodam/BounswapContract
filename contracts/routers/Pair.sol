@@ -93,6 +93,15 @@ contract InitialProxy {
         uint tokenBamount = poolConnectorParams.getPairAmount(tokenA, tokenB, tokenAamount);
         return tokenBamount;
     }
+    // 유동성 공급시 예상 유저 지분 퍼센테이지 계산
+    function poolSharePercent(address tokenA, address tokenB, uint amountADesired, uint amountBDesired) public view returns (uint) {
+        address pairAddress = factoryParams.getPairAddress(tokenA, tokenB);
+        (uint reserve0, uint reserve1, ) = Pool(pairAddress).getReserves();
+        address token0 = Pool(pairAddress).token0();
+        uint sharePercent = (tokenA == token0) ? 
+         (amountADesired * amountBDesired) / ((reserve0 + amountADesired) * (reserve1 + amountBDesired)) : (amountADesired * amountBDesired) / ((reserve0 + amountBDesired) * (reserve1 + amountADesired));
+        return sharePercent;
+    }
     // 유동성 제거시 퍼센테이지 계산
     function poolGetRemoveAmount(address pairAddress, uint percentage, address to) public view returns (uint, uint) {
         (uint amount0, uint amount1) = poolConnectorParams.getRemoveAmount(pairAddress, percentage, to);
