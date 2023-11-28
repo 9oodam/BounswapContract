@@ -462,9 +462,9 @@ contract Staking is Ownable, ReentrancyGuard {
     function safeBNCTransfer(address _to, uint256 _amount) internal {
         uint256 BNCBal= BNC.balances(address(this)); 
         if (_amount > BNCBal) {
-            BNC.transfer(_to, BNCBal);
+            BNC.deposit(_to, BNCBal);
         } else {
-            BNC.transfer(_to, _amount);
+            BNC.withdraw(_to, _amount);
         }
     }
     /// @notice 쌓인 보상 청구 (스테이킹으로 얻은 보상만 청구)
