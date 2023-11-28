@@ -223,9 +223,11 @@ contract Staking is Ownable, ReentrancyGuard {
         if(block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
             uint256 BNCReward = multiplier * BNCPerBlock * pool.allocPoint / totalAllocPoint * stakingPercent / percentDec;
-            accBNCPerShare = accBNCPerShare + BNCReward * 1e12 / lpSupply;
+
+            accBNCPerShare = accBNCPerShare + BNCReward * 1e18 / (lpSupply / 1e18);
         }
-        uint256 pendingReward = user.pendingReward + user.amount * accBNCPerShare / 1e12 - user.exactRewardCal;
+        uint256 pendingReward = user.pendingReward + user.amount * accBNCPerShare / 1e19 - user.exactRewardCal;
+
         user.pendingReward = user.pendingReward + pendingReward;
         return user.pendingReward;
     }
@@ -239,9 +241,9 @@ contract Staking is Ownable, ReentrancyGuard {
         if(block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
             uint256 BNCReward = multiplier * BNCPerBlock * pool.allocPoint / totalAllocPoint * stakingPercent / percentDec;
-            accBNCPerShare = accBNCPerShare + BNCReward * 1e12 / lpSupply;
+            accBNCPerShare = accBNCPerShare + BNCReward * 1e12 / (lpSupply / 1e18);
         }
-        return user.pendingReward + user.amount * accBNCPerShare / 1e12 - user.exactRewardCal;
+        return user.pendingReward + user.amount * accBNCPerShare / 1e19 - user.exactRewardCal;
         
     }
     /// @notice 사용자가 풀에서 자신의 몫을 정확하게 받도록 하게 하는 함수
@@ -464,7 +466,7 @@ contract Staking is Ownable, ReentrancyGuard {
         if (_amount > BNCBal) {
             BNC.deposit(_to, BNCBal);
         } else {
-            BNC.withdraw(_to, _amount);
+            BNC.withdraw((address(this)), _amount, _to);
         }
     }
     /// @notice 쌓인 보상 청구 (스테이킹으로 얻은 보상만 청구)
