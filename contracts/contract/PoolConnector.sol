@@ -5,6 +5,7 @@ import "hardhat/console.sol";
 import "../routers/Data.sol";
 import "./Factory.sol";
 import "./Pool.sol";
+import "./WBNC.sol";
 
 contract PoolConnector {
 
@@ -145,13 +146,23 @@ contract PoolConnector {
 
     // 미청구 수수료 청구하는 함수
     function claimFee(address validator, address pairAddress) public {
+        address[] memory tokens = dataParams.getAllTokenAddress();
+        address wbnc = tokens[0];
         (uint256 token0FeeAmount, uint256 token1FeeAmount) = dataParams.getUnclaimedFee(validator, pairAddress);
         address token0 = Pool(pairAddress).token0();
         address token1 = Pool(pairAddress).token1();
         // 누적된 미청구 수수료가 0 이상 있어야 함
         require(token0FeeAmount > 0 || token1FeeAmount > 0, "No fees to claim");
-        Token(token0).transferFromTo(pairAddress, validator, token0FeeAmount);
-        Token(token1).transferFromTo(pairAddress, validator, token1FeeAmount);
+        if(token0 == wbnc) {
+            WBNC(wbnc).withdraw(pairAddress, token0FeeAmount, validator);
+            Token(token1).transferFromTo(pairAddress, validator, token1FeeAmount);
+        }else if(token1 == wbnc) {
+            Token(token0).transferFromTo(pairAddress, validator, token0FeeAmount);
+            WBNC(wbnc).withdraw(pairAddress, token1FeeAmount, validator);
+        }else {
+            Token(token0).transferFromTo(pairAddress, validator, token0FeeAmount);
+            Token(token1).transferFromTo(pairAddress, validator, token1FeeAmount);
+        }
         dataParams.setUnclaimedFee(validator, pairAddress, 0, 0);
     }
 

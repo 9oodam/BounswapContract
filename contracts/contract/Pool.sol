@@ -119,11 +119,7 @@ contract Pool is Token {
         // emit Mint(msg.sender, amount0, amount1, liquidity);
 
         // bnc-bnb pair인 경우 govToken airdrop
-        address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
-        if((token0 == tokenAddressArr[0] && token1 == tokenAddressArr[3]) || (token1 == tokenAddressArr[0] && token0 == tokenAddressArr[3])) {
-            // uint amount = liquidity / 10;
-            Token(tokenAddressArr[1])._mint(to, liquidity);
-        }
+        dataParams.isGovPair(token0, token1, to, liquidity, true);
 
         return liquidity;
     }
@@ -156,19 +152,8 @@ contract Pool is Token {
         if (feeOn) kLast = SafeMath.mul(uint(reserve0), reserve1);
 
         // bnc-bnb pair인 경우 govToken burn
-        address[] memory tokenAddressArr = dataParams.getAllTokenAddress();
-        if((token0 == tokenAddressArr[0] && token1 == tokenAddressArr[3]) || (token1 == tokenAddressArr[0] && token0 == tokenAddressArr[3])) {
-            uint amount = liquidity / 10;
-            uint govAmount = Token(tokenAddressArr[1]).balanceOf(to);
-            if(amount > govAmount) {
-                Token(tokenAddressArr[1])._burn(to, govAmount);
-            } else {
-                Token(tokenAddressArr[1])._burn(to, amount);
-            }
-        }
+        dataParams.isGovPair(token0, token1, to, liquidity, false);
 
-        // uint _price0CumulativeLast = price0CumulativeLast;
-        // uint _price1CumulativeLast = price1CumulativeLast;
         return (amount0, amount1);
     }
 

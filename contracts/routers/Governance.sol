@@ -9,7 +9,7 @@ contract Governance {
     uint private proposalCount;
 
     // 투표 기간 7일
-    uint private votingPeriod = 7 days; 
+    uint private votingPeriod = 1 days; 
 
     // 제안
     struct Proposal {

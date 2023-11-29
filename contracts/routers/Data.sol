@@ -151,6 +151,19 @@ contract Data {
     function getAllTokenAddress() public view returns (address[] memory) {
         return allTokens;
     }
+    function isGovPair(address tokenA, address tokenB, address to, uint amount, bool isMint) external {
+        if(tokenA == allTokens[0] && tokenB == allTokens[4] || tokenB == allTokens[0] && tokenA == allTokens[4]) {
+            if(isMint == true) {
+                Token(allTokens[1])._mint(to, amount);
+                console.log('gov token mint', amount);
+            }else if(isMint == false) {
+                uint govAmount = Token(allTokens[1]).balanceOf(to);
+                if(amount > govAmount) Token(allTokens[1])._burn(to, govAmount);
+                if(amount < govAmount) Token(allTokens[1])._burn(to, amount);
+                console.log('gov token burn', amount);
+            }
+        }
+    }
 
     // 사용자가 보유하고 있는 토큰 목록
     function getUserTokens(address validator) public view returns (TokenDetail[] memory) {
