@@ -172,12 +172,13 @@ contract PoolConnector {
         bool isDuplicated = false;
         for(uint i=0; i<dataParams.validatorPoolArrLength(userAddress); i++) {
             if(dataParams.getValidatorPoolArr(userAddress)[i] == pairAddress) {
-                isDuplicated == true;
+                isDuplicated = true;
                 break;
             }
         }
-        require(isDuplicated == false);
-        dataParams.addValidatorPoolArr(userAddress, pairAddress);
-        dataParams.addValidatorArr(pairAddress, userAddress);
+        if(isDuplicated == false) {
+            dataParams.addValidatorPoolArr(userAddress, pairAddress);
+            dataParams.addValidatorArr(pairAddress, userAddress);
+        }
     }
 }
