@@ -77,6 +77,7 @@ contract Staking is Ownable, ReentrancyGuard {
     event AddStakingPool (uint256 _allocPoint, address _lpToken, uint256 stakingPoolStartTime, uint256 stakingEndTime); /// @dev 스테이킹 풀 생성 시 할당 포인트, 토큰 주소, 시작시간, 끝나는시간 기록
     event NinjaLiftInfo(address _Ninja, uint256 _totalLPToken, uint256 _totalNinjaReward, uint256 _stakingLeftTime, uint256 _ninjaRewardRate); /// @dev 탈주자의 주소, 가져간 총LP수량, 쌓고 떠난 리워드, 시간, LP당 쌓은 비율 기록
     event MyAllReward(uint256 _pendingBNC, uint256 _userBlockRewardPerBlock, uint256 _estimatedUserRewardFromNinjs); /// @dev 여태까지 쌓은 자신의 리워드, 블록당 자신이 받는 리워드 비율, 탈주자가 쌓고 떠난 리워드 비율 기록
+    event StakingTotalAmount(address user,uint256 _pid, uint256 lpTokenBalances);
     modifier vaildPool (uint256 _pid) {
         require(_pid < poolInfo.length, "pool not exist");
         _;
@@ -305,7 +306,8 @@ contract Staking is Ownable, ReentrancyGuard {
         }
         
         emit Deposit(msg.sender, _pid, _amount, user.stakingStartTime, pool.lpToken.balanceOf(address(this)));
-
+        emit StakingTotalAmount(msg.sender, _pid, pool.lpToken.balanceOf(address(this)));
+        
     }
     /// @notice 일반 출금
     function withdraw(uint256 _pid, uint256 _amount) public nonReentrant vaildPool (_pid) {
@@ -394,6 +396,7 @@ contract Staking is Ownable, ReentrancyGuard {
         pool.lpToken.transfer(msg.sender, userAmount);
         
         emit EmergencyWithdraw(msg.sender, _pid, userAmount, pool.lpToken.balanceOf(address(this)));
+        emit StakingTotalAmount(msg.sender, _pid, pool.lpToken.balanceOf(address(this)));
 
         user.amount = 0;
         user.pendingReward = 0;
