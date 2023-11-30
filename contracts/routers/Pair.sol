@@ -99,7 +99,7 @@ contract InitialProxy {
         (uint reserve0, uint reserve1, ) = Pool(pairAddress).getReserves();
         address token0 = Pool(pairAddress).token0();
         uint sharePercent = (tokenA == token0) ? 
-         (amountADesired * amountBDesired) / ((reserve0 + amountADesired) * (reserve1 + amountBDesired)) : (amountADesired * amountBDesired) / ((reserve0 + amountBDesired) * (reserve1 + amountADesired));
+         (amountADesired * amountBDesired * 100) / ((reserve0 + amountADesired) * (reserve1 + amountBDesired)) : (amountADesired * amountBDesired * 100) / ((reserve0 + amountBDesired) * (reserve1 + amountADesired));
         return sharePercent;
     }
     // 유동성 제거시 퍼센테이지 계산
