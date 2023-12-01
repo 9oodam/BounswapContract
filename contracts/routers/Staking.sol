@@ -389,6 +389,9 @@ contract Staking is Ownable, ReentrancyGuard {
         emit NinjaLiftInfo(msg.sender, ninja.totalLPToken, ninja.totalNinjaReward, ninja.stakingLeftTime, ninjaRewardRate);
 
         // 사용자의 출금 전 출금 가능한 보상이 있는 경우 재분배
+        
+        _removeUserFromStakingUsers(_pid, msg.sender); // 스테이킹 유저 목록에서 사용자 제거
+
         if (totalStaked > 0 && pendingReward > 0) {
             distributeRewards(_pid, pendingReward, totalStaked);
         }
@@ -403,7 +406,6 @@ contract Staking is Ownable, ReentrancyGuard {
         user.exactRewardCal = 0;
         user.stakingStartTime = 0;
 
-        _removeUserFromStakingUsers(_pid, msg.sender); // 스테이킹 유저 목록에서 사용자 제거
     }
     /// @notice 탈주자가 쌓고 떠난 리워드 재분배
     /// @dev 스테이킹중인 유저들에게만(stakingUsers)분배된다.
