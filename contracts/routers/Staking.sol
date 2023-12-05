@@ -271,7 +271,8 @@ contract Staking is Ownable, ReentrancyGuard {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 poolReward = perBlockReward(_pid);
-        uint256 userShare = user.amount * 1e12 / pool.lpToken.balanceOf(address(this));
+        uint256 LPSupply = pool.lpToken.balanceOf(address(this));
+        uint256 userShare = user.amount * 1e12 / (LPSupply / 1e12);
         uint256 userRewardPerBlock = poolReward * userShare / 1e12;
         return userRewardPerBlock;
     }
@@ -389,9 +390,8 @@ contract Staking is Ownable, ReentrancyGuard {
         emit NinjaLiftInfo(msg.sender, ninja.totalLPToken, ninja.totalNinjaReward, ninja.stakingLeftTime, ninjaRewardRate);
 
         // 사용자의 출금 전 출금 가능한 보상이 있는 경우 재분배
-        
         _removeUserFromStakingUsers(_pid, msg.sender); // 스테이킹 유저 목록에서 사용자 제거
-
+        
         if (totalStaked > 0 && pendingReward > 0) {
             distributeRewards(_pid, pendingReward, totalStaked);
         }
