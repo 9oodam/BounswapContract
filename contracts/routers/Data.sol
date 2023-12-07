@@ -194,12 +194,14 @@ contract Data {
         uint256 tvl = 0;
         for(uint i=0; i<allPairs.length; i++) {
             (uint112 reserve0, uint112 reserve1,) = Pool(allPairs[i]).getReserves();
-            uint256 volume = (allPairs[i] == Pool(allPairs[i]).token0()) ? reserve0 : reserve1;
-            tvl += volume;
+            if(tokenAddress == Pool(allPairs[i]).token0()) {
+                tvl += reserve0;
+            }else if(tokenAddress == Pool(allPairs[i]).token1()) {
+                tvl += reserve1;
+            }
         }
         
         return TokenDetail(tokenAddress, token.name(), token.symbol(), token.uri(), tvl, balance);
-        
     }
 
     // 24시간/7일 전부터 현재까지 발생한 Block number 반환

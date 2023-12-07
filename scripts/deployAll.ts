@@ -39,12 +39,12 @@ async function main() {
 
   // 7) Staking
   const BNCTokenAddress = tokenAddressArr[0]; 
-  const dev0Addr = "0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38"; 
+  const dev0Addr = "0x4f210933EEeE8631D50105935bdEf4279eEee220"; 
   const dev0Percent = 0; 
   const stakingPercent = 10000; 
   const BNCPerBlock = 1; // BNC
   const startBlock = 0; 
-  const initialOwner = "0xc03D38B39c0b78C9d015DDB3930AA031EEfeCb38"; // Owner
+  const initialOwner = "0x4f210933EEeE8631D50105935bdEf4279eEee220"; // Owner
   
   const StakingContract = await ethers.deployContract("Staking", [
     BNCTokenAddress,
